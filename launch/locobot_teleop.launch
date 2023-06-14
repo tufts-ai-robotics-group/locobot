@@ -1,0 +1,6 @@
+<launch>
+    <group ns="locobot">
+        <node pkg="locobot_custom" name="teleop" type="locobot_teleop.py" output="screen"/>
+    </group>
+</launch>
+

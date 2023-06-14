@@ -1,0 +1,34 @@
+<launch>
+
+    <arg name="world_name"                 default="pre_novelty_pre_map"/>
+    <arg name="robot_name"                 default="locobot"/>
+    <arg name="robot_model"                default="locobot_wx200" />
+    <arg name="show_lidar"                        default="true"/>
+    <arg name="external_srdf_loc"                 default=""/>
+    <arg name="use_camera"                        default="false"/>
+    <arg name="dof"                               default="5"/>
+    <arg name="use_moveit_rviz"                   default="true"/>
+
+    <include file="$(find interbotix_xslocobot_nav)/launch/xslocobot_nav_sim.launch">
+        <arg name="robot_model"                 value="locobot_wx200" />
+        <arg name="use_lidar"                   value="true" />
+        <arg name="rtabmap_args"                value="-d" />
+        <arg name="world_name"                  value="$(find locobot_custom)/worlds/$(arg world_name).world" />
+        <arg name="use_trajectory_controllers"  value="true"/>
+    </include>
+
+    <include file="$(find interbotix_xslocobot_moveit)/launch/move_group.launch" ns="$(arg robot_name)">
+        <arg name="robot_modelsrc/robot_custom/include src/robot_custom/include/robot_custom src/robot_custom/launch src/robot_custom/src src/robot_custom/worlds src/robot_custom/.gitignore src/robot_custom/CMakeLists.txt src/robot_custom/package.xml src/robot_custom/README.md"                       value="$(arg robot_model)"/>
+        <arg name="robot_name"                        value="$(arg robot_name)"/>
+        <arg name="show_lidar"                        value="$(arg show_lidar)"/>
+        <arg name="external_srdf_loc"                 value="$(arg external_srdf_loc)"/>
+        <arg name="dof"                               value="$(arg dof)"/>
+        <arg name="use_camera"                        value="$(arg use_camera)"/>
+        <arg name="publish_monitored_planning_scene"  value="true" />
+    </include>
+
+    <include if="$(arg use_moveit_rviz)" file="$(find interbotix_xslocobot_moveit)/launch/moveit_rviz.launch" ns="$(arg robot_name)">
+        <arg name="robot_name"                        value="$(arg robot_name)"/>
+        <arg name="config"                            value="true"/>
+    </include>
+</launch>

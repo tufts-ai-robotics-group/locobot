@@ -86,10 +86,14 @@ def vels(speed,turn):
     return "currently:\tspeed %s\tturn %s " % (speed,turn)
 
 if __name__=="__main__":
+    is_simulation = len(sys.argv) > 1 and sys.argv[1] == "sim"
+    if is_simulation:
+        print("Simulation Mode Enabled")
+    topic = '/locobot/cmd_vel' if is_simulation else '/mobile_base/cmd_vel'
     settings = termios.tcgetattr(sys.stdin)
     
     rospy.init_node('locobot_teleop')
-    pub = rospy.Publisher('/locobot/cmd_vel', Twist, queue_size=5)
+    pub = rospy.Publisher(topic, Twist, queue_size=5)
 
     x = 0
     th = 0

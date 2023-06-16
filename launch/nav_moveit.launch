@@ -1,24 +1,64 @@
 <launch>
-
-    <arg name="world_name"                 default="latest_pre_novelty"/>
     <arg name="robot_name"                 default="locobot"/>
     <arg name="robot_model"                default="locobot_wx200" />
-    <arg name="show_lidar"                        default="true"/>
+    <arg name="use_lidar"                       default="true"/>
+    <arg name="show_lidar"                        default="$(arg use_lidar)"/>
     <arg name="use_camera"                        default="false"/>
     <arg name="dof"                               default="5"/>
     <arg name="use_moveit_rviz"                   default="true"/>
     <arg name="rtabmap_args"                      default=""/>
     <arg name="localization"                    default="true"/>
+    <arg name="mode_configs"                      default="$(find interbotix_xslocobot_moveit)/config/modes_all.yaml"/>
+    <arg name="use_actual"                      default="true"/>
+    <arg name="moveit_interface_gui"            default="false"/>
+    <arg name="use_cpp_interface"               default="true"/>
+    <arg name="use_python_interface"               default="true"/>
 
-    <include file="$(find interbotix_xslocobot_nav)/launch/xslocobot_nav_sim.launch"> 
-        <arg name="robot_model"                 value="locobot_wx200" />
-        <arg name="use_lidar"                   value="true" />
+    <include file="$(find interbotix_xslocobot_nav)/launch/xslocobot_nav.launch"> 
+        <arg name="robot_model"                 value="$(arg robot_model)" />
+        <arg name="use_lidar"                   value="$(arg use_lidar)" />
         <arg name="rtabmap_args"                value="$(arg rtabmap_args)" />
-        <arg name="world_name"                  value="$(find locobot_custom)/worlds/$(arg world_name).world" />
-        <arg name="use_trajectory_controllers"  value="true"/>
         <arg name="localization"                value="$(arg localization)"/>
     </include>
 
+
+
+    <!-- interbotix move it cpp/python interface -->
+    <group if="$(arg use_cpp_interface)">
+
+        <node
+            name="moveit_interface"
+            pkg="interbotix_moveit_interface"
+            type="moveit_interface"
+            respawn="false"
+            output="screen"
+            ns="$(arg robot_name)"/>
+
+        <node if="$(arg moveit_interface_gui)"
+            name="moveit_interface_gui"
+            pkg="interbotix_moveit_interface"
+            type="moveit_interface_gui"
+            output="screen"
+            ns="$(arg robot_name)"/>
+
+    </group>
+
+    <node if="$(arg use_python_interface)"
+        name="moveit_python_interface"
+        pkg="interbotix_moveit_interface"
+        type="moveit_python_interface"
+        respawn="false"
+        output="screen"
+        ns="$(arg robot_name)">
+        <rosparam command="load"                      file="$(find interbotix_xslocobot_moveit_interface)/config/$(arg robot_model).yaml"/>
+        <param name="robot_model"                     value="$(arg robot_model)"/>
+        <remap from="/attached_collision_object"      to="/$(arg robot_name)/attached_collision_object"/>
+        <remap from="/collision_object"               to="/$(arg robot_name)/collision_object"/>
+    </node>
+
+    <!--     
+        ros controller
+    -->
     <include file="$(find interbotix_xslocobot_moveit)/launch/move_group.launch" ns="$(arg robot_name)">
         <arg name="robot_model"                       value="$(arg robot_model)"/>
         <arg name="robot_name"                        value="$(arg robot_name)"/>
@@ -27,6 +67,29 @@
         <arg name="use_camera"                        value="$(arg use_camera)"/>
         <arg name="publish_monitored_planning_scene"  value="true" />
     </include>
+
+    <rosparam file="$(find interbotix_xslocobot_ros_control)/config/$(arg dof)dof_controllers.yaml" command="load" ns="$(arg robot_name)"/>
+    <rosparam file="$(find interbotix_xslocobot_ros_control)/config/hardware.yaml" command="load" ns="$(arg robot_name)"/>
+
+    <node
+        name="controller_spawner"
+        pkg="controller_manager"
+        type="controller_manager"
+        respawn="false"
+        output="screen"
+        ns="$(arg robot_name)"
+        args="spawn arm_controller gripper_controller"/>
+
+    <node
+        name="xs_hardware_interface"
+        pkg="interbotix_xs_ros_control"
+        type="xs_hardware_interface"
+        output="screen"
+        ns="$(arg robot_name)">
+    </node>
+
+
+
 
     <!-- <include if="$(arg use_moveit_rviz)" file="$(find interbotix_xslocobot_moveit)/launch/moveit_rviz.launch" ns="$(arg robot_name)">
         <arg name="robot_name"                        value="$(arg robot_name)"/>

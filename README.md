@@ -65,3 +65,8 @@ If the arm collided with some item while moving and red indicator light of one o
 first hold the arm and turn off the ros node. Put it back to its sleep position, then
 unplug the 12V connection from the large powerbank and plug it in again after waiting 5 seconds. It should work
 again after this reset.
+
+### Arm Issue, such as Can’t find DYNAMIXEL ID
+If the robot cannot find Dynamixel ID of some of the motors, it could be that the robot was in a position that probably broke one of the wires. It could also be that one of the servo motors on the arm is malfunctioning. To solve the problem, run the Dynamixel Wizard 2 diagnosis tool, and see if the motors can be detected. The Tufts locobot alreadu have it installed at `/home/locobot/ROBOTIS/DynamixelWizard2/DynamixelWizard2.sh`. Run this command and a window will pop up, allowing you to test connections to the motors.
+
+For more debugging help or other issues, see the official documentation [here](https://docs.trossenrobotics.com/interbotix_xsarms_docs/troubleshooting.html#can-t-find-dynamixel-id)

@@ -48,6 +48,20 @@ objects: table, doorway_facing_green, doorway_facing_blue, large_sofa, small_sof
 rosrun locobot_custom obtain_nav_goals.py
 ```
 
+## Pick and Place
+### Run the perception stack launchfile
+```
+roslaunch interbotix_xslocobot_perception xslocobot_perception.launch robot_model:=locobot_wx200
+```
+
+### Run the Object Detection and pick/place python code
+```
+roscd locobot_custom
+cd scripts
+python3 pick_place_no_armtag.py
+```
+
+It will then pickup every detected object in the camera view, raise it up a few inches, and drop it.
 
 ## TroubleShooting
 ### Time synchronization with the Create 3 Base

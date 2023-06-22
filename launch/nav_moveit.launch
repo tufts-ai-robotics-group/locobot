@@ -3,7 +3,7 @@
     <arg name="robot_model"                default="locobot_wx200" />
     <arg name="use_lidar"                       default="true"/>
     <arg name="show_lidar"                        default="$(arg use_lidar)"/>
-    <arg name="use_camera"                        default="false"/>
+    <arg name="use_camera"                        default="true"/>
     <arg name="dof"                               default="5"/>
     <arg name="use_moveit_rviz"                   default="true"/>
     <arg name="rtabmap_args"                      default=""/>
@@ -13,12 +13,14 @@
     <arg name="moveit_interface_gui"            default="false"/>
     <arg name="use_cpp_interface"               default="true"/>
     <arg name="use_python_interface"               default="true"/>
+    <arg name="camera_tilt_angle"                   default="0.7"/>
 
     <include file="$(find interbotix_xslocobot_nav)/launch/xslocobot_nav.launch"> 
         <arg name="robot_model"                 value="$(arg robot_model)" />
         <arg name="use_lidar"                   value="$(arg use_lidar)" />
         <arg name="rtabmap_args"                value="$(arg rtabmap_args)" />
         <arg name="localization"                value="$(arg localization)"/>
+        <arg name="camera_tilt_angle"           value="$(arg camera_tilt_angle)"/>
     </include>
 
 
@@ -88,11 +90,17 @@
         ns="$(arg robot_name)">
     </node>
 
-
-
-
     <!-- <include if="$(arg use_moveit_rviz)" file="$(find interbotix_xslocobot_moveit)/launch/moveit_rviz.launch" ns="$(arg robot_name)">
         <arg name="robot_name"                        value="$(arg robot_name)"/>
         <arg name="config"                            value="true"/>
+    </include> -->
+
+    <!--
+        perception
+    -->
+    <!-- <include file="$(find interbotix_xslocobot_perception)/launch/xslocobot_perception.launch">
+        <arg name="robot_model"                       value="$(arg robot_model)"/>
+        <arg name="robot_name"                        value="$(arg robot_name)"/>
+        <arg name="use_rviz"                          value="false"/>
     </include> -->
 </launch>

@@ -1,5 +1,6 @@
 import rospy
 from std_msgs.msgs import String
+from learner.learner import Learner
 
 class Manager(object):
 

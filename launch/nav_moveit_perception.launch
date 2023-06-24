@@ -1,29 +1,57 @@
 <launch>
-    <arg name="robot_name"                 default="locobot"/>
-    <arg name="robot_model"                default="locobot_wx200" />
-    <arg name="use_lidar"                       default="true"/>
-    <arg name="show_lidar"                        default="$(arg use_lidar)"/>
-    <arg name="use_camera"                        default="true"/>
-    <arg name="dof"                               default="5"/>
-    <arg name="use_moveit_rviz"                   default="true"/>
-    <arg name="rtabmap_args"                      default=""/>
-    <arg name="localization"                    default="true"/>
-    <arg name="mode_configs"                      default="$(find interbotix_xslocobot_moveit)/config/modes_all.yaml"/>
-    <arg name="use_actual"                      default="true"/>
-    <arg name="moveit_interface_gui"            default="false"/>
-    <arg name="use_cpp_interface"               default="true"/>
-    <arg name="use_python_interface"               default="true"/>
+    <arg name="robot_name"                          default="locobot"/>
+    <arg name="robot_model"                         default="locobot_wx200" />
+    <arg name="base_type"                           default="$(optenv INTERBOTIX_XSLOCOBOT_BASE_TYPE create3)"/> <!-- 'kobuki', 'create3' -->
+    <arg name="external_urdf_loc"                   default=""/>
+    <arg name="use_lidar"                           default="true"/>
+    <arg name="show_lidar"                          default="$(arg use_lidar)"/>
+    <arg name="use_camera"                          default="true"/>
+    <arg name="dof"                                 default="5"/>
+    <arg name="use_moveit_rviz"                     default="true"/>
+    <arg name="rtabmap_args"                        default=""/>
+    <arg name="localization"                        default="true"/>
+    <arg name="mode_configs"                        default="$(find interbotix_xslocobot_moveit)/config/modes_all.yaml"/>
+    <arg name="use_actual"                          default="true"/>
+    <arg name="moveit_interface_gui"                default="false"/>
+    <arg name="use_cpp_interface"                   default="true"/>
+    <arg name="use_python_interface"                default="true"/>
     <arg name="camera_tilt_angle"                   default="0.7"/>
 
+    <!-- driver -->
+    <include file="$(find interbotix_xslocobot_control)/launch/xslocobot_control.launch">
+        <arg name="robot_model"                       value="$(arg robot_model)"/>
+        <arg name="robot_name"                        value="$(arg robot_name)"/>
+        <arg name="use_lidar"                         value="true"/>
+        <arg name="show_lidar"                        value="true"/>
+        <arg name="external_urdf_loc"                 value="$(arg external_urdf_loc)"/>
+        <arg name="base_type"                         value="$(arg base_type)"/>
+        <arg name="use_camera"                        value="true"/>
+        <arg name="filters"                           value="pointcloud"/>
+        <arg name="align_depth"                       value="true"/>
+        <arg name="load_configs"                      value="true"/>
+        <arg name="use_base"                          value="true"/>
+        <arg name="use_dock"                          value="true"/>
+    </include>
+
+    <!-- perception -->
+    <include file="$(find interbotix_xslocobot_perception)/launch/xslocobot_perception.launch">
+        <arg name="robot_model"                       value="$(arg robot_model)"/>
+        <arg name="robot_name"                        value="$(arg robot_name)"/>
+        <arg name="use_rviz"                          value="false"/>
+        <arg name="standalone_tags"                   value="$(find locobot_custom)/config/april_tags.yaml"/>
+        <arg name="launch_driver"                     value="false"/>
+        <arg name="enable_pipeline"                   value="true"/>
+    </include>
+
+    <!-- navigation -->
     <include file="$(find interbotix_xslocobot_nav)/launch/xslocobot_nav.launch"> 
         <arg name="robot_model"                 value="$(arg robot_model)" />
         <arg name="use_lidar"                   value="$(arg use_lidar)" />
         <arg name="rtabmap_args"                value="$(arg rtabmap_args)" />
         <arg name="localization"                value="$(arg localization)"/>
         <arg name="camera_tilt_angle"           value="$(arg camera_tilt_angle)"/>
+        <arg name="launch_driver"               value="false"/>
     </include>
-
-
 
     <!-- interbotix move it cpp/python interface -->
     <group if="$(arg use_cpp_interface)">

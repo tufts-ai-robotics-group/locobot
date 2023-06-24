@@ -63,6 +63,13 @@ python3 pick_place_no_armtag.py
 
 It will then pickup every detected object in the camera view, raise it up a few inches, and drop it.
 
+
+## Integrated Navigation, Perception, and Moveit stack
+```
+roslaunch locobot_custom nav_moveit_perception.launch
+```
+
+
 ## TroubleShooting
 ### Time synchronization with the Create 3 Base
 If you see this issue:

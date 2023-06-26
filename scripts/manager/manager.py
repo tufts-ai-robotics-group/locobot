@@ -1,10 +1,34 @@
 import rospy
+import actionlib
+import Action
 from std_msgs.msgs import String
 from learner.learner import Learner
+from state.observer import Observer
 
 class Manager(object):
 
-    def __init__(self):
+    def __init__(self, learner: Learner, 
+                       observer: Observer):
+
+        # Populate action lists
+        self.pddl_action_list = rospy.get_param("pddl_action_list")
+        if not isinstance(self.pddl_action_list, list):
+            raise TypeError("Parameter 'pddl_action_list' should be a list of strings.")
+
+        self.rl_action_list = rospy.get_param("rl_action_list")
+        if not (isinstance(self.rl_action_list, list)):
+            raise TypeError("Parameter 'pddl_action_list' should be a list of strings.")
+        
+        pddl_action_clients = {}
+        for action in self.pddl_action_list:
+            pddl_action_clients[action] = actionlib.SimpleActionClient(action, Action)
+        
+        rl_action_list = {}
+        for action in self.pddl_action_list:
+            rl_action_list[action] = actionlib.SimpleActionClien(action, Action)
+
+        # Wait for action servers
+        
 
         # Have way to start RL without failure for testing
 

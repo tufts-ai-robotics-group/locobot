@@ -53,7 +53,6 @@ class LBMoveIt:
 
 
     def __init__(self, group="arm"): # group: arm / gripper
-        os.environ['ROS_NAMESPACE'] = "locobot" # manually set namespace to locobot
         moveit_commander.roscpp_initialize(sys.argv)
         rospy.init_node('moveit_python_interface')
 
@@ -159,8 +158,6 @@ class LBMoveIt:
 
 
 def main():
-    print("============ Press `Enter` to begin the tutorial by setting up the moveit_commander (press ctrl-d to exit) ...")
-    input()
     arm_group = LBMoveIt()
 
     arm_group.go_to_joint_state(LBMoveIt.ARM_JOINT_STATES.UPRIGHT)

@@ -1,14 +1,14 @@
 <launch>
 
-    <arg name="world_name"                 default="latest_pre_novelty"/>
+    <arg name="world_name"                 default="pre_novelty_adjusted_height"/>
     <arg name="robot_name"                 default="locobot"/>
     <arg name="robot_model"                default="locobot_wx200" />
     <arg name="show_lidar"                        default="true"/>
     <arg name="use_camera"                        default="false"/>
     <arg name="dof"                               default="5"/>
-    <arg name="use_moveit_rviz"                   default="true"/>
     <arg name="rtabmap_args"                      default=""/>
     <arg name="localization"                    default="true"/>
+    <arg name="use_python_interface"            default="true"/>
 
     <include file="$(find interbotix_xslocobot_nav)/launch/xslocobot_nav_sim.launch"> 
         <arg name="robot_model"                 value="locobot_wx200" />
@@ -17,6 +17,7 @@
         <arg name="world_name"                  value="$(find locobot_custom)/worlds/$(arg world_name).world" />
         <arg name="use_trajectory_controllers"  value="true"/>
         <arg name="localization"                value="$(arg localization)"/>
+        <arg name="use_rviz"                    value="true"/>
     </include>
 
     <include file="$(find interbotix_xslocobot_moveit)/launch/move_group.launch" ns="$(arg robot_name)">
@@ -28,8 +29,27 @@
         <arg name="publish_monitored_planning_scene"  value="true" />
     </include>
 
-    <!-- <include if="$(arg use_moveit_rviz)" file="$(find interbotix_xslocobot_moveit)/launch/moveit_rviz.launch" ns="$(arg robot_name)">
-        <arg name="robot_name"                        value="$(arg robot_name)"/>
-        <arg name="config"                            value="true"/>
-    </include> -->
+
+    <!-- 
+        rviz 
+    -->
+    <!-- <arg name="rviz_command_args" value="-f $(arg robot_name)/base_footprint -d $(find locobot_custom)/rviz/locobot_move_base+move_it.rviz" />
+    <node name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false"
+        args="$(arg rviz_command_args)" output="screen">
+        <rosparam command="load" file="$(find interbotix_xslocobot_moveit)/config/kinematics.yaml"/>
+    </node> -->
+
+    <node if="$(arg use_python_interface)"
+        name="moveit_python_interface"
+        pkg="interbotix_moveit_interface"
+        type="moveit_python_interface"
+        respawn="false"
+        output="screen"
+        ns="$(arg robot_name)">
+        <rosparam command="load"                      file="$(find interbotix_xslocobot_moveit_interface)/config/$(arg robot_model).yaml"/>
+        <param name="robot_model"                     value="$(arg robot_model)"/>
+        <remap from="/attached_collision_object"      to="/$(arg robot_name)/attached_collision_object"/>
+        <remap from="/collision_object"               to="/$(arg robot_name)/collision_object"/>
+    </node>
+
 </launch>

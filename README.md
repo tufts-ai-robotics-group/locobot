@@ -9,6 +9,13 @@ roslaunch locobot_custom nav_moveit.launch
 ```
 Note: The RTABmap is located in `~/.ros/rtabmap`.
 
+
+#### Pickup an Object
+```
+ROS_NAMESPACE=locobot rosrun locobot_custom universal_move_arm.py
+```
+
+
 ## Real Robot
 ### Robot NUC Computer
 If you want to build a new map:

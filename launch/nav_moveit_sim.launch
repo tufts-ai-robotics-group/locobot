@@ -1,6 +1,6 @@
 <launch>
 
-    <arg name="world_name"                 default="pre_novelty_adjusted_height"/>
+    <arg name="world_name"                 default="items_on_ground"/>
     <arg name="robot_name"                 default="locobot"/>
     <arg name="robot_model"                default="locobot_wx200" />
     <arg name="show_lidar"                        default="true"/>

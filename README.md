@@ -9,6 +9,12 @@ roslaunch locobot_custom nav_moveit.launch
 ```
 Note: The RTABmap is located in `~/.ros/rtabmap`.
 
+#### Obtain the location of an object in Gazebo
+Run
+```
+rosrun locobot_custom obtain_obj_loc.py <obj_name>
+```
+to obtain and print the location of the objects. If no object name is specified, the list of available objects' names will be printed.
 
 #### Pickup an Object
 ```

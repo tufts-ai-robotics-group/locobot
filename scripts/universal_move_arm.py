@@ -22,6 +22,7 @@ from six.moves import input
 from std_msgs.msg import String
 from tf.transformations import quaternion_from_euler
 from moveit_commander.conversions import pose_to_list
+from obtain_pick_item_pose import PickUpPoseCalculator
 
 def all_close(goal, actual, tolerance):
     """
@@ -159,18 +160,47 @@ class LBMoveIt:
 
 def main():
     arm_group = LBMoveIt()
-
+    
+    # go to upright
     arm_group.go_to_joint_state(LBMoveIt.ARM_JOINT_STATES.UPRIGHT)
-    arm_group.go_to_pose_goal()
-    arm_group.go_to_pose_goal(
-        Pose(
-            position=Point(0.3, 0, 0.3),
-            orientation=Quaternion(0, 0, 0, 1)
-        ))
+    
+    # go to some valid pose
+    # arm_group.go_to_pose_goal()
+    arm_group.go_to_pose_goal(Pose(
+        position=Point(x=0.5, y=0, z=0.35),
+        orientation=Quaternion(x=0, y=0, z=0, w=1)
+    ))
+    
+    # go to the location of a specific object
+    pose_calc = PickUpPoseCalculator("cricket_ball")
+    pose = pose_calc.get_pose()
+    arm_group.go_to_pose_goal(pose)
+
+    # go to home then sleep
     arm_group.go_to_joint_state(LBMoveIt.ARM_JOINT_STATES.HOME)
     arm_group.go_to_joint_state(LBMoveIt.ARM_JOINT_STATES.SLEEP)
 
     rospy.logdebug("Done!")
 
+def test1():
+    arm_group = LBMoveIt()
+    arm_group.go_to_pose_goal(Pose(
+        position=Point(x=0.5, y=0, z=0.2),
+        orientation=Quaternion(*quaternion_from_euler(ai=0, aj=0.8, ak=0))
+    ))
+
 if __name__ == '__main__':
     main()
+
+
+"""
+position: 
+  x: 0.0998607287270466
+  y: -0.4516907457059328
+  z: -0.0013513024989717515
+orientation: 
+  x: 0.0
+  y: 0.0
+  z: 0.0
+  w: 1.0
+"""

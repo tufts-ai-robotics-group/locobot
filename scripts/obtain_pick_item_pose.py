@@ -49,15 +49,17 @@ from geometry_msgs.msg import Pose, Point, Quaternion
 from gazebo_msgs.msg import ModelStates
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
+ARM_RELATIVE_LOC = [0.037943, 0, 0.139]
+
 def calculate_pickup_pose(object_pose, locobot_pose):
     print(object_pose)
     print()
     print(locobot_pose)
     # Calculate relative position
     relative_position = Point()
-    relative_position.x = object_pose.position.x - locobot_pose.position.x
-    relative_position.y = object_pose.position.y - locobot_pose.position.y
-    relative_position.z = object_pose.position.z - locobot_pose.position.z + 0.2
+    relative_position.x = object_pose.position.x - locobot_pose.position.x - ARM_RELATIVE_LOC[0]
+    relative_position.y = object_pose.position.y - locobot_pose.position.y - ARM_RELATIVE_LOC[1]
+    relative_position.z = object_pose.position.z - locobot_pose.position.z - ARM_RELATIVE_LOC[2]
 
     # Calculate relative orientation
     locobot_orientation = (
@@ -77,13 +79,14 @@ def calculate_pickup_pose(object_pose, locobot_pose):
     relative_yaw = yaw_object - yaw_locobot
 
     # Adjust relative pose for picking up
-    offset_x = 0.1  # Adjust the x-coordinate offset for picking up
-    offset_z = 0.05  # Adjust the z-coordinate offset for picking up
+    offset_x = 0  # Adjust the x-coordinate offset for picking up
+    offset_z = 0.09  # Adjust the z-coordinate offset for picking up
     relative_position.x += offset_x
     relative_position.z += offset_z
 
     # Convert relative orientation back to quaternion
-    relative_orientation = quaternion_from_euler(0.0, 0.7, relative_yaw)
+    # relative_orientation = quaternion_from_euler(0.0, 0.7, math.atan2(relative_position.y, relative_position.x))
+    relative_orientation = quaternion_from_euler(0.0, 0.0, 0.0)
 
     # Create the pickup pose in the robot's coordinate frame
     pickup_pose = Pose()
@@ -138,5 +141,8 @@ class PickUpPoseCalculator:
 if __name__ == "__main__":
     rospy.init_node("pose_listener")
     ball_pose_calculator = PickUpPoseCalculator("cricket_ball")
-    ball_pose_calculator.get_pose()
+    while True:
+        print("---------")
+        ball_pose_calculator.get_pose()
+        rospy.sleep(1)
     rospy.spin()

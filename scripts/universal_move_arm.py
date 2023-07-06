@@ -178,7 +178,6 @@ def main():
 
     # go to home then sleep
     arm_group.go_to_joint_state(LBMoveIt.ARM_JOINT_STATES.HOME)
-    arm_group.go_to_joint_state(LBMoveIt.ARM_JOINT_STATES.SLEEP)
 
     rospy.logdebug("Done!")
 
@@ -195,12 +194,13 @@ if __name__ == '__main__':
 
 """
 position: 
-  x: 0.0998607287270466
-  y: -0.4516907457059328
-  z: -0.0013513024989717515
+  x: 0.5
+  y: 0
+  z: 0.2
 orientation: 
   x: 0.0
-  y: 0.0
+  y: 0.3894183423086505
   z: 0.0
-  w: 1.0
+  w: 0.9210609940028851
+
 """

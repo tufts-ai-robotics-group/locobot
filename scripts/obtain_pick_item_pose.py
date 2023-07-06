@@ -45,13 +45,15 @@
 
 import rospy
 import math
+import numpy as np
+from ros_numpy.geometry import point_to_numpy, numpy_to_point, quat_to_numpy, numpy_to_quat
 from geometry_msgs.msg import Pose, Point, Quaternion
 from gazebo_msgs.msg import ModelStates
-from tf.transformations import euler_from_quaternion, quaternion_from_euler
+from tf.transformations import euler_from_quaternion, quaternion_from_euler, rotation_matrix, rotation_from_matrix
 
 ARM_RELATIVE_LOC = [0.037943, 0, 0.139]
 
-def calculate_pickup_pose(object_pose, locobot_pose):
+def calculate_pickup_pose2(object_pose, locobot_pose):
     print(object_pose)
     print()
     print(locobot_pose)
@@ -99,6 +101,43 @@ def calculate_pickup_pose(object_pose, locobot_pose):
     return pickup_pose
 
 
+def calculate_pickup_pose(object_pose, locobot_pose):
+    print("locobot pose:", locobot_pose)
+    # Calculate relative position
+    obj_loc = point_to_numpy(object_pose.position)
+    locobot_loc = point_to_numpy(locobot_pose.position)
+    relative_position = obj_loc - locobot_loc
+    print("relative pos:", relative_position)
+
+    # Calculate relative orientation
+    locobot_orientation = quat_to_numpy(locobot_pose.orientation)
+    (roll_locobot, pitch_locobot, yaw_locobot) = euler_from_quaternion(locobot_orientation)
+    print("locobot orientation (rpy, deg):", 
+          np.degrees(roll_locobot), np.degrees(pitch_locobot), np.degrees(yaw_locobot))
+
+    # transformation of the relative position
+    rot_mat = rotation_matrix(angle=-yaw_locobot, direction=[0, 0, 1])[:3, :3]
+    print("rot matrix:", rot_mat)
+    relative_position_rot = (rot_mat.dot(relative_position.T)).T
+
+    # Adjust relative pose for picking up
+    offset_x = 0  # Adjust the x-coordinate offset for picking up
+    offset_z = 0.3  # Adjust the z-coordinate offset for picking up
+    relative_position_rot[0] += offset_x
+    relative_position_rot[2] += offset_z
+
+    # Convert relative orientation back to quaternion
+    # relative_orientation = quaternion_from_euler(0.0, 0.7, math.atan2(relative_position.y, relative_position.x))
+    orientation = quaternion_from_euler(0.0, 0.7, 0.0)
+
+    # Create the pickup pose in the robot's coordinate frame
+    pickup_pose = Pose()
+    pickup_pose.position = numpy_to_point(relative_position_rot)
+    pickup_pose.orientation = numpy_to_quat(orientation)
+
+    return pickup_pose
+
+
 class PickUpPoseCalculator:
     # make sure a node is already initalized
     def __init__(self, object_name):
@@ -114,14 +153,14 @@ class PickUpPoseCalculator:
                 self.object_pose = msg.pose[index]
 
         def locobot_pose_callback(msg):
-            index = msg.name.index("locobot")
+            index = msg.name.index("locobot::locobot/arm_base_link")
             self.locobot_pose = msg.pose[index]  # Assuming the LoCoBot's pose is the second element in the model_states message
 
         # rospy.init_node('pose_listener')
 
         # Subscribe to the Gazebo model_states topic to get the object and LoCoBot poses
         rospy.Subscriber('/gazebo/model_states', ModelStates, object_pose_callback)
-        rospy.Subscriber('/gazebo/model_states', ModelStates, locobot_pose_callback)
+        rospy.Subscriber('/gazebo/link_states', ModelStates, locobot_pose_callback)
 
     def get_pose(self):
         # Wait for the poses to be obtained

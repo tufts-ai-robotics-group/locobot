@@ -86,10 +86,22 @@ def vels(speed,turn):
     return "currently:\tspeed %s\tturn %s " % (speed,turn)
 
 if __name__=="__main__":
-    is_simulation = len(sys.argv) > 1 and sys.argv[1] == "sim"
-    if is_simulation:
+    is_simulation = False
+    is_kobuki = False
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "sim":
+            is_simulation = True
+        elif sys.argv[1] == "kobuki":
+            is_kobuki = True
+    
+    if is_kobuki:
+        print("Using Kobuki Base")
+        topic = '/locobot/mobile_base/commands/velocity'
+    elif is_simulation:
         print("Simulation Mode Enabled")
-    topic = '/locobot/cmd_vel' if is_simulation else '/mobile_base/cmd_vel'
+        topic = '/locobot/cmd_vel'
+    else:
+        topic = '/mobile_base/cmd_vel'
     settings = termios.tcgetattr(sys.stdin)
     
     rospy.init_node('locobot_teleop')

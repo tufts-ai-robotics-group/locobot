@@ -166,10 +166,10 @@ def main():
     
     # go to some valid pose
     # arm_group.go_to_pose_goal()
-    arm_group.go_to_pose_goal(Pose(
-        position=Point(x=0.5, y=0, z=0.35),
-        orientation=Quaternion(x=0, y=0, z=0, w=1)
-    ))
+    # arm_group.go_to_pose_goal(Pose(
+    #     position=Point(x=0.5, y=0, z=0.35),
+    #     orientation=Quaternion(x=0, y=0, z=0, w=1)
+    # ))
     
     # go to the location of a specific object
     pose_calc = PickUpPoseCalculator("cricket_ball")

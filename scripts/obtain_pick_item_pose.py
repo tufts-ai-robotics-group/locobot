@@ -9,8 +9,9 @@
 ##################################################################
 
 import rospy
-from geometry_msgs.msg import TransformStamped, PoseStamped
+from geometry_msgs.msg import TransformStamped, PoseStamped, Quaternion
 from gazebo_msgs.msg import ModelStates
+from tf.transformations import quaternion_from_euler
 import tf2_ros
 import tf2_geometry_msgs
 
@@ -56,7 +57,9 @@ class PickUpPoseCalculator:
         while True:
             try:
                 target_transform: TransformStamped = self.tf_buffer.lookup_transform(LOCOBOT_TF, WORLD_TF, rospy.Time(0))
-                return tf2_geometry_msgs.do_transform_pose(self.object_pose, target_transform)
+                target_pose = tf2_geometry_msgs.do_transform_pose(self.object_pose, target_transform).pose
+                target_pose.orientation = Quaternion(*quaternion_from_euler(ai=0, aj=0.8, ak=0))
+                return target_pose
             except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
                 rate.sleep()
 

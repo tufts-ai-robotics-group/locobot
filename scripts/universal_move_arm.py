@@ -162,7 +162,7 @@ def main():
     arm_group = LBMoveIt()
     
     # go to upright
-    arm_group.go_to_joint_state(LBMoveIt.ARM_JOINT_STATES.UPRIGHT)
+    arm_group.go_to_joint_state(LBMoveIt.ARM_JOINT_STATES.HOME)
     
     # go to some valid pose
     # arm_group.go_to_pose_goal()
@@ -173,8 +173,8 @@ def main():
     
     # go to the location of a specific object
     pose_calc = PickUpPoseCalculator("cricket_ball")
-    pose = pose_calc.get_pose()
-    arm_group.go_to_pose_goal(pose)
+    pose = pose_calc.get_pose(z_offset=0.1)
+    arm_group.go_to_pose_goal(pose.pose)
 
     # go to home then sleep
     arm_group.go_to_joint_state(LBMoveIt.ARM_JOINT_STATES.HOME)

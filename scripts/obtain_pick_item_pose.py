@@ -8,173 +8,57 @@
 #
 ##################################################################
 
-# import rospy
-# from gazebo_msgs.msg import ModelStates
-# import sys
-
-# def create_callback(obj_name):
-#     def callback(msg):
-#         if obj_name is None:
-#             print("Objects:")
-#             print(",  ".join(msg.name))
-#             print()
-#             print()
-#             return
-#         # Find the index of the object in the model list
-#         index = msg.name.index(obj_name)
-
-#         # Extract position and orientation
-#         position = msg.pose[index].position
-#         orientation = msg.pose[index].orientation
-
-#         # Print the position and orientation
-#         print("Position: x={}, y={}, z={}".format(position.x, position.y, position.z))
-#         print("Orientation: x={}, y={}, z={}, w={}".format(orientation.x, orientation.y, orientation.z, orientation.w))
-#     return callback
-
-# if __name__ == "__main__":
-#     if len(sys.argv) < 2:
-#         obj_name = None
-#         print("No object specified. Will Print Object name list")
-#     else:
-#         obj_name = sys.argv[1]
-#     rospy.init_node('object_pose_listener')
-#     rospy.Subscriber('/gazebo/model_states', ModelStates, create_callback(obj_name))
-#     rospy.spin()
-
-
 import rospy
-import math
-import numpy as np
-from ros_numpy.geometry import point_to_numpy, numpy_to_point, quat_to_numpy, numpy_to_quat
-from geometry_msgs.msg import Pose, Point, Quaternion
+from geometry_msgs.msg import TransformStamped, PoseStamped
 from gazebo_msgs.msg import ModelStates
-from tf.transformations import euler_from_quaternion, quaternion_from_euler, rotation_matrix, rotation_from_matrix
+import tf2_ros
+import tf2_geometry_msgs
 
 ARM_RELATIVE_LOC = [0.037943, 0, 0.139]
 
-def calculate_pickup_pose2(object_pose, locobot_pose):
-    print(object_pose)
-    print()
-    print(locobot_pose)
-    # Calculate relative position
-    relative_position = Point()
-    relative_position.x = object_pose.position.x - locobot_pose.position.x - ARM_RELATIVE_LOC[0]
-    relative_position.y = object_pose.position.y - locobot_pose.position.y - ARM_RELATIVE_LOC[1]
-    relative_position.z = object_pose.position.z - locobot_pose.position.z - ARM_RELATIVE_LOC[2]
+    
 
-    # Calculate relative orientation
-    locobot_orientation = (
-        locobot_pose.orientation.x,
-        locobot_pose.orientation.y,
-        locobot_pose.orientation.z,
-        locobot_pose.orientation.w
-    )
-    object_orientation = (
-        object_pose.orientation.x,
-        object_pose.orientation.y,
-        object_pose.orientation.z,
-        object_pose.orientation.w
-    )
-    (roll_locobot, pitch_locobot, yaw_locobot) = euler_from_quaternion(locobot_orientation)
-    (roll_object, pitch_object, yaw_object) = euler_from_quaternion(object_orientation)
-    relative_yaw = yaw_object - yaw_locobot
-
-    # Adjust relative pose for picking up
-    offset_x = 0  # Adjust the x-coordinate offset for picking up
-    offset_z = 0.09  # Adjust the z-coordinate offset for picking up
-    relative_position.x += offset_x
-    relative_position.z += offset_z
-
-    # Convert relative orientation back to quaternion
-    # relative_orientation = quaternion_from_euler(0.0, 0.7, math.atan2(relative_position.y, relative_position.x))
-    relative_orientation = quaternion_from_euler(0.0, 0.0, 0.0)
-
-    # Create the pickup pose in the robot's coordinate frame
-    pickup_pose = Pose()
-    pickup_pose.position = relative_position
-    pickup_pose.orientation.x = relative_orientation[0]
-    pickup_pose.orientation.y = relative_orientation[1]
-    pickup_pose.orientation.z = relative_orientation[2]
-    pickup_pose.orientation.w = relative_orientation[3]
-
-    return pickup_pose
-
-
-def calculate_pickup_pose(object_pose, locobot_pose):
-    print("locobot pose:", locobot_pose)
-    # Calculate relative position
-    obj_loc = point_to_numpy(object_pose.position)
-    locobot_loc = point_to_numpy(locobot_pose.position)
-    relative_position = obj_loc - locobot_loc
-    print("relative pos:", relative_position)
-
-    # Calculate relative orientation
-    locobot_orientation = quat_to_numpy(locobot_pose.orientation)
-    (roll_locobot, pitch_locobot, yaw_locobot) = euler_from_quaternion(locobot_orientation)
-    print("locobot orientation (rpy, deg):", 
-          np.degrees(roll_locobot), np.degrees(pitch_locobot), np.degrees(yaw_locobot))
-
-    # transformation of the relative position
-    rot_mat = rotation_matrix(angle=-yaw_locobot, direction=[0, 0, 1])[:3, :3]
-    print("rot matrix:", rot_mat)
-    relative_position_rot = (rot_mat.dot(relative_position.T)).T
-
-    # Adjust relative pose for picking up
-    offset_x = 0  # Adjust the x-coordinate offset for picking up
-    offset_z = 0.3  # Adjust the z-coordinate offset for picking up
-    relative_position_rot[0] += offset_x
-    relative_position_rot[2] += offset_z
-
-    # Convert relative orientation back to quaternion
-    # relative_orientation = quaternion_from_euler(0.0, 0.7, math.atan2(relative_position.y, relative_position.x))
-    orientation = quaternion_from_euler(0.0, 0.7, 0.0)
-
-    # Create the pickup pose in the robot's coordinate frame
-    pickup_pose = Pose()
-    pickup_pose.position = numpy_to_point(relative_position_rot)
-    pickup_pose.orientation = numpy_to_quat(orientation)
-
-    return pickup_pose
-
+WORLD_TF = "map"
+LOCOBOT_TF = "locobot/arm_base_link"
 
 class PickUpPoseCalculator:
     # make sure a node is already initalized
     def __init__(self, object_name):
-        # object_name = "cricket_ball"  # Name of the object you want to pick up
+        self.object_name = object_name
+        self.tf_buffer = tf2_ros.Buffer()
+        self.listener = tf2_ros.TransformListener(self.tf_buffer)
 
         # Initialize variables to store the object pose and LoCoBot pose
+        self.model_states = None
         self.object_pose = None
-        self.locobot_pose = None
 
-        def object_pose_callback(msg):
+        def model_state_callback(msg):
+            if object_name in msg.name:
+                self.model_states = msg
             if object_name in msg.name:
                 index = msg.name.index(object_name)
-                self.object_pose = msg.pose[index]
-
-        def locobot_pose_callback(msg):
-            index = msg.name.index("locobot::locobot/arm_base_link")
-            self.locobot_pose = msg.pose[index]  # Assuming the LoCoBot's pose is the second element in the model_states message
+                self.object_pose = PoseStamped(pose=msg.pose[index])
+                self.object_pose.header.stamp = rospy.Time.now()
+                self.object_pose.header.frame_id = object_name
 
         # rospy.init_node('pose_listener')
 
         # Subscribe to the Gazebo model_states topic to get the object and LoCoBot poses
-        rospy.Subscriber('/gazebo/model_states', ModelStates, object_pose_callback)
-        rospy.Subscriber('/gazebo/link_states', ModelStates, locobot_pose_callback)
+        rospy.Subscriber('/gazebo/model_states', ModelStates, model_state_callback)
 
     def get_pose(self):
+        rate = rospy.Rate(10.0)
         # Wait for the poses to be obtained
-        while self.object_pose is None or self.locobot_pose is None:
-            rospy.sleep(0.1)
+        while self.model_states is None:
+            rate.sleep()
 
-        # Calculate the pickup pose
-        pickup_pose = calculate_pickup_pose(self.object_pose, self.locobot_pose)
-
-        # Print the pickup pose
-        print("Pickup Pose:")
-        print("Position: x={}, y={}, z={}".format(pickup_pose.position.x, pickup_pose.position.y, pickup_pose.position.z))
-        print("Orientation: x={}, y={}, z={}, w={}".format(pickup_pose.orientation.x, pickup_pose.orientation.y, pickup_pose.orientation.z, pickup_pose.orientation.w))
-        return pickup_pose
+        # Wait for the transform to be obtained
+        while True:
+            try:
+                target_transform: TransformStamped = self.tf_buffer.lookup_transform(LOCOBOT_TF, WORLD_TF, rospy.Time(0))
+                return tf2_geometry_msgs.do_transform_pose(self.object_pose, target_transform)
+            except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
+                rate.sleep()
 
 
 if __name__ == "__main__":
@@ -182,6 +66,6 @@ if __name__ == "__main__":
     ball_pose_calculator = PickUpPoseCalculator("cricket_ball")
     while True:
         print("---------")
-        ball_pose_calculator.get_pose()
+        print(ball_pose_calculator.get_pose())
         rospy.sleep(1)
     rospy.spin()

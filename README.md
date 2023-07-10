@@ -16,10 +16,22 @@ rosrun locobot_custom obtain_obj_loc.py <obj_name>
 ```
 to obtain and print the location of the objects. If no object name is specified, the list of available objects' names will be printed.
 
-#### Pickup an Object
+#### Move the arm to a specific location
 ```
 ROS_NAMESPACE=locobot rosrun locobot_custom universal_move_arm.py
 ```
+
+#### Obtain the calculated pickup pose given the object name in Gazebo
+Run
+```
+rosrun locobot_custom obtain_pick_item_pose.py
+```
+to obtain the pickup pose for the cricket ball in the scene. Feel
+free to change the name of the object in the script located in the debug func.
+
+It will print the pickup pose in the terminal, as well as the pickup pose
+plus the location of the object to `/locobot/estimated_pickup_pose` and
+`/debug/obj_loc` to aid visualization and debugging in rviz.
 
 
 ## Real Robot

@@ -23,7 +23,7 @@ ARM_RELATIVE_LOC = [0.037943, 0, 0.139]
     
 
 WORLD_TF = "map"
-LOCOBOT_TF = "locobot/arm_base_link"
+LOCOBOT_TF = "locobot/base_link"
 
 
 class PickUpPoseCalculator:
@@ -60,7 +60,7 @@ class PickUpPoseCalculator:
         target_transform: TransformStamped = self.tf_buffer.lookup_transform(WORLD_TF, LOCOBOT_TF, rospy.Time(0))
         return tf2_geometry_msgs.do_transform_pose(pose_locobot, target_transform)
 
-    def get_pose(self, z_offset=0.0) -> PoseStamped:
+    def get_pose(self, pitch=1.4, z_offset=0.0, x_offset=0.037943) -> PoseStamped:
         rate = rospy.Rate(10.0)
         # Wait for the poses to be obtained
         while self.model_states is None:
@@ -71,9 +71,16 @@ class PickUpPoseCalculator:
             try:
                 target_transform: TransformStamped = self.tf_buffer.lookup_transform(LOCOBOT_TF, WORLD_TF, rospy.Time(0))
                 target_pose = tf2_geometry_msgs.do_transform_pose(self.object_pose, target_transform)
+                # orientation computation
+                # 1. aj (pitch) determines the angle between the arm and the ground.
+                # 2. ak (yaw) (angle that determines whether the final pose of the gripper 
+                #    should go left / right) needs to be determined by arctan because we only have 5 dof.
+                # target_pose.pose.position.y = 0 # test
+                
                 x = target_pose.pose.position.x
                 y = target_pose.pose.position.y
-                target_pose.pose.orientation = Quaternion(*quaternion_from_euler(ai=0, aj=0.8, ak=math.atan2(y, x)))
+                target_pose.pose.orientation = Quaternion(*quaternion_from_euler(ai=0, aj=pitch, ak=math.atan2(y, x)))
+                target_pose.pose.position.x += x_offset
                 target_pose.pose.position.z += z_offset
                 return target_pose
             except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
@@ -88,7 +95,7 @@ def debug():
     rate = rospy.Rate(10)
 
     while not rospy.is_shutdown():
-        pose = ball_pose_calculator.get_pose(z_offset=0.05)
+        pose = ball_pose_calculator.get_pose(pitch=1.4, z_offset=0.05)
         
         print("---------")
         print(pose)

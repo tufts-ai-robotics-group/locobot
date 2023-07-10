@@ -7,6 +7,7 @@
 #
 #
 
+import math
 import sys
 import os
 import copy
@@ -91,10 +92,7 @@ class LBMoveIt:
         self.group = moveit_commander.MoveGroupCommander(group_name)
 
         ## We create a `DisplayTrajectory`_ publisher which is used later to publish
-        ## trajectories for RViz to visualize:
-        self.display_trajectory_publisher = rospy.Publisher("move_group/display_planned_path",
-                                                    moveit_msgs.msg.DisplayTrajectory,
-                                                    queue_size=20)
+        ## trajectories for RViz to visualize:test1ue_size=20)
 
         ## Getting Basic Information
         ## ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -145,9 +143,11 @@ class LBMoveIt:
 
         print("============ Printing Pose Goal:\n" + str(pose_goal))
         self.group.set_pose_target(pose_goal)
+        print("1112")
 
         ## Now, we call the planner to compute the plan and execute it.
         plan = self.group.go(wait=True)
+        print(plan)
         # Calling `stop()` ensures that there is no residual movement
         self.group.stop()
         # It is always good to clear your targets after planning with poses.
@@ -182,14 +182,32 @@ def main():
     rospy.logdebug("Done!")
 
 def test1():
+    x, y, z = 0.35, 0, 0.1
     arm_group = LBMoveIt()
-    arm_group.go_to_pose_goal(Pose(
-        position=Point(x=0.5, y=0, z=0.2),
-        orientation=Quaternion(*quaternion_from_euler(ai=0, aj=0.8, ak=0))
-    ))
+    curr_pose = arm_group.group.get_current_pose().pose
+    print(curr_pose)
+    arm_group.go_to_joint_state(LBMoveIt.ARM_JOINT_STATES.HOME)
+    arm_group.go_to_pose_goal(curr_pose)
+    # arm_group.go_to_pose_goal(Pose(
+    #     position=Point(x, y, z),
+    #     # orientation=Quaternion(*quaternion_from_euler(ai=0, aj=0.8, ak=math.atan2(y,x)))
+    #     orientation=curr_pose.orientation
+    # ))
+
+def print_pose():
+    arm_group = LBMoveIt()
+    curr_pose = arm_group.group.get_current_pose().pose
+    print(curr_pose)
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) <= 1:
+        main()
+    elif sys.argv[1] == "get_pose":
+        print_pose()
+    elif sys.argv[1] == "test":
+        test1()
+    else:
+        main()
 
 
 """

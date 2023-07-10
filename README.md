@@ -17,9 +17,21 @@ rosrun locobot_custom obtain_obj_loc.py <obj_name>
 to obtain and print the location of the objects. If no object name is specified, the list of available objects' names will be printed.
 
 #### Move the arm to a specific location
+
+The main code component is the `LBMoveIt` class, which automatically
+registers the move group and allows you to move it to a joint
+state or a pose goal. For more example, please see the official
+example code from
+`interbotix_ros_toolboxes/interbotix_common_toolbox/interbotix_moveit_interface/scripts/moveit_python_interface`.
+
+To directly run the test code and script, do:
 ```
-ROS_NAMESPACE=locobot rosrun locobot_custom universal_move_arm.py
+ROS_NAMESPACE=locobot rosrun locobot_custom universal_move_arm.py <args>
 ```
+The script also includes three different test functions. If you run the script directly, you may specify args depending on which test function you want to run:
+- `main` function tries to get the pickup pose using the code in `obtain_pick_item_pose.py` and moves the arm to the item. Run the script without args to run this function.
+- `test1` function tries to move the arm to a specific location, which can be helpful for debugging. Run the script with argument "test" to run this function.
+- `print_pose` function prints the current pose of the arm, which could also be helpful for debugging when for example we manually set the arm to a specific angle and we want to see what pose the arm is at. Run the script with argument get_pose to run this function.
 
 #### Obtain the calculated pickup pose given the object name in Gazebo
 Run
@@ -29,7 +41,7 @@ rosrun locobot_custom obtain_pick_item_pose.py
 to obtain the pickup pose for the cricket ball in the scene. Feel
 free to change the name of the object in the script located in the debug func.
 
-It will print the pickup pose in the terminal, as well as the pickup pose
+It start running and will continuously print the pickup pose in the terminal. It will also publish the pickup pose
 plus the location of the object to `/locobot/estimated_pickup_pose` and
 `/debug/obj_loc` to aid visualization and debugging in rviz.
 

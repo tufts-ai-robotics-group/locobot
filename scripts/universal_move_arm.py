@@ -14,6 +14,7 @@ import copy
 from typing import Optional
 import rospy
 import random
+import time
 import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
@@ -142,12 +143,29 @@ class LBMoveIt:
             pose_goal = self.pose_goal
 
         print("============ Printing Pose Goal:\n" + str(pose_goal))
-        self.group.set_pose_target(pose_goal)
-        print("1112")
+        xyz = [pose_goal.position.x, pose_goal.position.y, pose_goal.position.z]
+        print (self.group.get_goal_tolerance())
+        # self.group.set_goal_position_tolerance(value=0.01)
+        self.group.set_goal_orientation_tolerance(value=0.01)
+        # print (self.group.get_goal_tolerance())
+        self.group.set_position_target(xyz) # this works
+        # self.group.set_pose_target(pose_goal) # this doesnt work
+        print("!!!!!!!!!!! Planning NOW !!!!!")
 
         ## Now, we call the planner to compute the plan and execute it.
-        plan = self.group.go(wait=True)
-        print(plan)
+        start_time = time.time()
+        duration = 5 # Specify the duration in seconds
+
+        while time.time() - start_time < duration:
+            try:
+                plan = self.group.go(wait=True)
+                if plan:
+                    break  # Exit the loop since the condition is met
+            except Exception as e:
+                # Handle the exception, if needed
+                print("An error occurred:", e)
+
+        print("plan = {}".format(plan))
         # Calling `stop()` ensures that there is no residual movement
         self.group.stop()
         # It is always good to clear your targets after planning with poses.
@@ -173,6 +191,8 @@ def main():
     
     # go to the location of a specific object
     pose_calc = PickUpPoseCalculator("cricket_ball")
+    # pose_calc = PickUpPoseCalculator("coke_can_0")
+
     pose = pose_calc.get_pose(z_offset=0.1)
     arm_group.go_to_pose_goal(pose.pose)
 
@@ -188,11 +208,11 @@ def test1():
     print(curr_pose)
     arm_group.go_to_joint_state(LBMoveIt.ARM_JOINT_STATES.HOME)
     arm_group.go_to_pose_goal(curr_pose)
-    # arm_group.go_to_pose_goal(Pose(
-    #     position=Point(x, y, z),
-    #     # orientation=Quaternion(*quaternion_from_euler(ai=0, aj=0.8, ak=math.atan2(y,x)))
-    #     orientation=curr_pose.orientation
-    # ))
+    arm_group.go_to_pose_goal(Pose(
+        position=Point(x, y, z),
+        # orientation=Quaternion(*quaternion_from_euler(ai=0, aj=0.8, ak=math.atan2(y,x)))
+        orientation=curr_pose.orientation
+    ))
 
 def print_pose():
     arm_group = LBMoveIt()
@@ -220,5 +240,22 @@ orientation:
   y: 0.3894183423086505
   z: 0.0
   w: 0.9210609940028851
+
+
+
+ position: 
+  x: 0.43195339877875066
+  y: -0.019049222800503918
+  z: 0.13907712113217138
+orientation: 
+  x: 0.015559368194888736
+  y: 0.6440297622092129
+  z: -0.01847273280243329
+  w: 0.7646190748293757
+(0.0001, 0.0001, 0.001)
+(0.0001, 0.01, 0.01)
+!!!!!!!!!!! Planning NOW !!!!!
+plan = True
+
 
 """

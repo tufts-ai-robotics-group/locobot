@@ -1,5 +1,7 @@
-# Locobot_custom
-Custom ROS package to run planning/learning experiments with Locobot robot in simulation. Built for ROS Noetic.
+# locobot_custom
+Custom ROS package to run Planning/Learning Experiments with Locobot Robot in Simulation and Real World.
+Built for [ROS Noetic](http://wiki.ros.org/noetic).
+Tested in Ubuntu 20.04 & Python = 3.8.10
 
 ## Simulation
 #### Launch the simulation with the pre-built map
@@ -22,13 +24,13 @@ The main code component is the `LBMoveIt` class, which automatically
 registers the move group and allows you to move it to a joint
 state or a pose goal. For more example, please see the official
 example code from
-`interbotix_ros_toolboxes/interbotix_common_toolbox/interbotix_moveit_interface/scripts/moveit_python_interface`.
+`[interbotix_ros_toolboxes/interbotix_common_toolbox/interbotix_moveit_interface/scripts/moveit_python_interface]`. [Link](https://github.com/Interbotix/interbotix_ros_toolboxes/blob/main/interbotix_common_toolbox/interbotix_moveit_interface/scripts/moveit_python_interface)
 
 To directly run the test code and script, do:
 ```
 ROS_NAMESPACE=locobot rosrun locobot_custom universal_move_arm.py <args>
 ```
-The script also includes three different test functions. If you run the script directly, you may specify args depending on which test function you want to run:
+The script also includes three different test functions. If you run the script directly, you may specify `<args>` depending on which test function you want to run:
 - `main` function tries to get the pickup pose using the code in `obtain_pick_item_pose.py` and moves the arm to the item. Run the script without args to run this function.
 - `test1` function tries to move the arm to a specific location, which can be helpful for debugging. Run the script with argument "test" to run this function.
 - `print_pose` function prints the current pose of the arm, which could also be helpful for debugging when for example we manually set the arm to a specific angle and we want to see what pose the arm is at. Run the script with argument get_pose to run this function.
@@ -44,6 +46,8 @@ free to change the name of the object in the script located in the debug func.
 It start running and will continuously print the pickup pose in the terminal. It will also publish the pickup pose
 plus the location of the object to `/locobot/estimated_pickup_pose` and
 `/debug/obj_loc` to aid visualization and debugging in rviz.
+
+In Rviz load the custom configuration file named `pickup_visualize.rviz` to get the topic loaded.
 
 
 ## Real Robot

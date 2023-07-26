@@ -110,7 +110,9 @@ class Planner:
 
 
     ######################################### Public Functions ###############################################
-    def verify_preconditions(self, action: str, *args):
+    def verify_preconditions(self, 
+                             action: str, 
+                             *args):
         """
         Checks the preconditions of an action.
 
@@ -123,7 +125,9 @@ class Planner:
         """
         return self._preconditions[action](*args)
     
-    def verify_effects(self, action: str, *args):
+    def verify_effects(self, 
+                       action: str, 
+                       *args):
         """
         Checks the effects of an action.
 
@@ -186,7 +190,8 @@ class Planner:
                     input_count = len(predicate_parts) - 1
                     self._predicates[predicate_name] = input_count
 
-    def __verify_predicates(self, function_dict: dict) -> None:
+    def __verify_predicates(self, 
+                            function_dict: dict) -> None:
         """
         Verify that the predicate keys and input counts match the function dictionary.
 
@@ -240,7 +245,8 @@ class Planner:
                 self._preconditions[action_name] = self.__build_boolean_function(preconditions, parameters)
                 self._effects[action_name] = self.__build_boolean_function(effects, parameters)
 
-    def __parse_condition(self, condition_text: str) -> list:
+    def __parse_condition(self, 
+                          condition_text: str) -> list:
         """
         Parse a condition (precondition or effect) and build a corresponding function.
 
@@ -267,7 +273,9 @@ class Planner:
 
         return conditions
     
-    def __build_boolean_function(self, condition: list, params: list):
+    def __build_boolean_function(self, 
+                                 condition: list, 
+                                 params: list):
         """
         Build a boolean function for a parsed condition using predicates.
 

@@ -1,66 +1,47 @@
-import rospy
-import actionlib
-import Action
-from std_msgs.msgs import String
-from learner.learner import Learner
-from state.observer import Observer
+from planner.Planner import Planner
 
 class Manager(object):
 
-    def __init__(self, learner: Learner, 
-                       observer: Observer):
+    def __init__(self,
+                 planner: Planner,
+                 sym_actions: dict) -> None:
 
-        # Populate action lists
-        self.pddl_action_list = rospy.get_param("pddl_action_list")
-        if not isinstance(self.pddl_action_list, list):
-            raise TypeError("Parameter 'pddl_action_list' should be a list of strings.")
+        self._planner = planner
 
-        self.rl_action_list = rospy.get_param("rl_action_list")
-        if not (isinstance(self.rl_action_list, list)):
-            raise TypeError("Parameter 'pddl_action_list' should be a list of strings.")
+        # Verify that there is a symbolic action function for each planner action
+        sym_actions_set = set(sym_actions.keys())
+        planner_actions_set = set(self._planner.actions)
+        if sym_actions_set.difference(planner_actions_set) != set():
+            raise ValueError(f"Error: param 'sym_actions' has different keys than the PDDL action names")
+        self._sym_actions = sym_actions
+
+
+    def new_problem(self) -> None:
+        self._planner.new_problem()
+
+    def next_action(self) -> str:
+        return self._planner.next_action()
+
+    def verify_preconditions(self, 
+                             *args) -> bool:
+        return self._planner.verify_preconditions(args[0], *args[1:])
+    
+    
+    def verify_effects(self,
+                       *args) -> bool:
         
-        pddl_action_clients = {}
-        for action in self.pddl_action_list:
-            pddl_action_clients[action] = actionlib.SimpleActionClient(action, Action)
+        return self._planner.verify_effects(args[0], *args[1:])
+
+    def execute_action(self,
+                       *args) -> bool:
         
-        rl_action_list = {}
-        for action in self.pddl_action_list:
-            rl_action_list[action] = actionlib.SimpleActionClien(action, Action)
+        if not self._planner.verify_preconditions(args[0], *args[1:]):
+            return False
 
-        # Wait for action servers
+        self._sym_actions[args[0]](*args[1:])
+
+        if not self._planner.verify_effects(args[0], *args[1:]):
+            return False
         
-
-        # Have way to start RL without failure for testing
-
-        # Verify that pddl actions have corresponding action servers
-        # Verify that primitve actions have corresponding action servers
-        # Build action clients for both primitive and pddl actions
-        
-        # Load pddl problem and domain file
-        # Create a plan file
-
-        # Loop through actions in plan file
-        # 1. Grab an action from plan file
-        # 2. Parse the action, 1st is the action name, next is each argument
-        # 3. Pass arguments as strings in order to the action
-        # 4. Catch error if there is one
-        # 5. Have ability to query action state by user
-        # 6. Continue untill failure
-
-        # If there is failure, search for action executor in folder
-        # Execute executor if it exists, otherwise instantiate learner
-
-        # Instatiate Learner
-        # 1. Verify that learning agent ouput is same size as RL action space
-        # 2. Verify that learning agent input is same size as observation space
-        # 3. Define RL based on some parameters
-
-        # Loop until RL is complete
-        # 1. Get observation through some API
-        # 2. Send observation to RL
-        # 3. Get action
-        # 4. Execute action
-
-        # Loop to begining
-        pass
-
+        return True
+    

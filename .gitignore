@@ -2,3 +2,6 @@
 .vscode/settings.json
 
 maps/*
+
+**/.DS_Store
+

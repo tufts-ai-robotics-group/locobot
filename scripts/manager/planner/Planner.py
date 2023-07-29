@@ -49,7 +49,8 @@ class Planner:
         try:
             self._domain_file = open(domain_path, 'r')
             self.__parse_predicates() # Parse the predicates in the domain file, populate self._predicates
-            self.__verify_predicates(predicate_funcs) # Verify predicates against function dictionary
+            self.__verify_predicates(predicate_funcs) # Verify predicates against function dictionar
+            self._predicate_funcs = predicate_funcs
             self.__parse_actions() # Parse the actions in the domain file, populate self._preconditions and self._effects
             self._domain_file.close()
 
@@ -166,15 +167,6 @@ class Planner:
             return next(self._action)
         except StopIteration:
             return None
-
-    def get_state(self):
-            """
-            User defined representation of the symbolic state of the environment.
-
-            Raises:
-                NotImplementedError: Subclass responsibility
-            """
-            raise NotImplementedError
 
     
     ######################################### Private Functions ###############################################
@@ -296,16 +288,16 @@ class Planner:
             function: The constructed boolean function.
         """
         if condition[0] == 'and':
-            return lambda *args: all(self.__build_boolean_function(cond, self._predicates)(*args) for cond in condition[1:])
+            return lambda *args: all(self.__build_boolean_function(cond, params)(*args) for cond in condition[1:])
         elif condition[0] == 'or':
-            return lambda *args: any(self.__build_boolean_function(cond, self._predicates)(*args) for cond in condition[1:])
+            return lambda *args: any(self.__build_boolean_function(cond, params)(*args) for cond in condition[1:])
         elif condition[0] == 'not':
-            return lambda *args: not self.__build_boolean_function(condition[1], self._predicates)(*args)
+            return lambda *args: not self.__build_boolean_function(condition[1], params)(*args)
         else:
             predicate_name = condition[0]
             predicate_args = condition[1:]
             p_arg_indecies = [params.index(arg) for arg in predicate_args]
-            predicate_function = self._predicates[predicate_name]
+            predicate_function = self._predicate_funcs[predicate_name]
 
             # Only pass relavent arguments to predicate function
             return lambda *args: predicate_function(*[args[index] for index in p_arg_indecies])
@@ -333,7 +325,7 @@ class Planner:
 
         """
         problem_str = self.__generate_problem_str()
-        problem_path = join(self.problem_dir, f"{self.problem_prefix}_{str(self._file_counter)}")
+        problem_path = join(self.problem_dir, f"{self.problem_prefix}_{str(self._file_counter)}.pddl")
         
         # Open and write to problem file
         try:

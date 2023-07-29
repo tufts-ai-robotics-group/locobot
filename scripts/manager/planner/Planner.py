@@ -167,6 +167,15 @@ class Planner:
         except StopIteration:
             return None
 
+    def get_state(self):
+            """
+            User defined representation of the symbolic state of the environment.
+
+            Raises:
+                NotImplementedError: Subclass responsibility
+            """
+            raise NotImplementedError
+
     
     ######################################### Private Functions ###############################################
 

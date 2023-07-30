@@ -6,7 +6,7 @@
     can_1 - can
     bin_1 - bin
     nothing - nothing
-    robot_1 - robot
+    robot_1 - robot 
 )
 
 (:init

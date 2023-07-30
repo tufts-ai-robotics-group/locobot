@@ -5,6 +5,7 @@ This class implements the observation generator for the environment.
 import sys
 import os
 import itertools
+import time
 
 sys.path.append("../knowledge/PDDL/recycle_bot")
 sys.path.append("../knowledge/pddl-parser")
@@ -21,7 +22,6 @@ class ObservationGenerator:
         self.parser = PDDL_Parser()
         self.parser.parse_domain(domain_file)
         self.parser.parse_problem(problem_file)
-
 
     def get_observation(self):
         
@@ -109,6 +109,12 @@ class ObservationGenerator:
     def get_predicate_vector(self, predicate):
         # Generate a one-hot encoded vector for a given predicate
         predicate_vector = [0] * sum(len(v) for v in self.parser.objects.values())
+        print (self.parser.state)
+        print ("====================")
+        print (self.parser.objects)
+        print ("====================")
+        print (self.parser.objects.items())
+        print ("====================")
         for fact in self.parser.state:
             if fact[0] == predicate:
                 # Get the list of all objects of this type
@@ -124,7 +130,6 @@ class ObservationGenerator:
                     print(f"Object {fact[1]} not found in objects list.")
         return predicate_vector
     
-
 # testing
 def main():
     # Specify the paths to your domain and problem PDDL files

@@ -1,19 +1,21 @@
 from planner.Planner import Planner
 from pddl_parser.planner import Planner as PDDL_Planner 
+from os.path import join
 
 class RecycleBotPlanner(Planner):
 
     def __init__(self,
                  domain_path: str,
                  problem_dir: str,
+                 problem_prefix: str,
                  predicate_funcs: dict,
                  objects: dict) -> None:
         
-        super.__init__(domain_path, problem_dir, predicate_funcs)
+        super().__init__(domain_path, problem_dir, problem_prefix, predicate_funcs)
         self.objects = objects
         self.planner = PDDL_Planner()
     
-    def __generate_problem_str(self) -> str:
+    def generate_problem_str(self) -> str:
 
         def get_at(obj: str):
             for room in self.objects['room']:
@@ -79,15 +81,15 @@ class RecycleBotPlanner(Planner):
 )
 )"""
 
-    def __get_plan(self, domain_file, problem_file):
+    def __get_plan(self):
         # Get the plan from the planner
-        plan = self.planner.solve(domain_file, problem_file)
+        plan = self.planner.solve(self._domain_path, join(self._problem_dir, f"{self.problem_prefix}_{str(self._file_counter)}.pddl"))
         if plan is not None:
             return plan
         else:
             return None
 
-    def __generate_plan_str(self) -> str:
+    def generate_plan_str(self) -> str:
         plan = self.__get_plan()
         plan_str = ""
         for act in plan:

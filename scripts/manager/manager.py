@@ -12,7 +12,6 @@ class Manager(object):
 
     def __init__(self,
                  planner: Planner,
-                 learner: Learner,
                  sym_actions: dict) -> None:
 
         self._planner = planner
@@ -45,18 +44,16 @@ class Manager(object):
     def __execute_action(self,
                        *args) -> SymStatus:
         
-        if not self._planner.verify_preconditions(args[0], *args[1:]):
+        if not self.__verify_preconditions(args[0], *args[1:]):
             return SymStatus.PRECONDITION_FAILURE
 
         self._sym_actions[args[0]](*args[1:])
 
-        if not self._planner.verify_effects(args[0], *args[1:]):
+        if not self.__verify_effects(args[0], *args[1:]):
             return SymStatus.EFFECT_FAILURE
         
         return SymStatus.SUCCESS
 
-    def __get_sym_state(self):
-        return self._planner.get_state()
     
     ######################################### Subsymbolic Side ###############################################
     
@@ -67,10 +64,9 @@ class Manager(object):
 
         # Loop through actions in plan 
         while action := self.__next_action():
+            print(action)
             status = self.__execute_action(*action)
+            print(status)
+            
 
-            # Do RL
-            if status == SymStatus.PRECONDITION_FAILURE:
-                pass
-            elif status == SymStatus.EFFECT_FAILURE:
-                pass 
+

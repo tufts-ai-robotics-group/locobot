@@ -5,13 +5,15 @@ This class implements the observation generator for the environment.
 import sys
 import os
 import itertools
+import time
 
 sys.path.append("../knowledge/PDDL/recycle_bot")
 sys.path.append("../knowledge/pddl-parser")
 
 import numpy as np
-import quaternion
 from pddl_parser.PDDL import PDDL_Parser
+
+from ObservationUtils import GazeboObservationGenerator
 
 
 class ObservationGenerator:
@@ -21,110 +23,71 @@ class ObservationGenerator:
         self.parser = PDDL_Parser()
         self.parser.parse_domain(domain_file)
         self.parser.parse_problem(problem_file)
+        # self.observation_size = self.get_observation_size()
+        # self.observation = self.get_observation()
+
+    # def _get_problem_file(self):
+    #     generate_new_problem_file
+    #     return self.parser.problem_file
 
 
     def get_observation(self):
-        
-        # Sensory data
-        # sensory_data = self.get_sensory_data()
+        # Create an instance of GazeboObservationGenerator
+        # gazebo_generator = GazeboObservationGenerator()  # replace 'robot' with the actual name of your robot
 
-        # # Occupancy grid
-        # occupancy_grid = self.get_occupancy_grid()
+        # # Get the occupancy grid
+        # occupancy_grid = gazebo_generator.get_occupancy_grid()
 
-        # # One-hot encoded predicates
-        # predicates_vector = self.get_predicates_vector()
+        # # Get the relative locations and orientations
+        # relative_locations_and_orientations = gazebo_generator.get_relative_locations_and_orientations()
 
-        # Combine all parts of the observation
-        # observation = (sensory_data, occupancy_grid, predicates_vector)
-        observation = self.get_predicates_vector()
+        # # Flatten the occupancy grid and the relative locations and orientations
+        # flattened_occupancy_grid = occupancy_grid.flatten()
+        # flattened_relative_locations_and_orientations = np.array(relative_locations_and_orientations).flatten()
 
+        # # Concatenate the flattened occupancy grid, the flattened relative locations and orientations,
+        # # and the predicate vector
+        # observation = np.concatenate([flattened_occupancy_grid, flattened_relative_locations_and_orientations, self.get_predicate_vector()])
+
+        observation = self.get_predicates_vectors()
         return observation
-
-    def get_sensory_data(self):
-        '''
-        Needs work.
-        '''
-        sensory_data = {}
-        robot_state = self.env.get_robot_state()
-        for obj in self.env.get_all_objects():
-            obj_state = self.env.get_object_state(obj)
-            relative_state = self.calculate_relative_state(robot_state, obj_state)
-            sensory_data[obj] = relative_state
-        return sensory_data
-
-    def get_occupancy_grid(self):
-        '''
-        Needs work.
-        '''
-        width, height = self.env.get_env_dimensions()
-        wall_positions = self.env.get_wall_positions()
-        door_positions = self.env.get_door_positions()
-        return self.generate_occupancy_grid(width, height, wall_positions, door_positions)
-
-
-    def calculate_relative_state(self, robot_state, obj_state):
-        robot_position, robot_orientation = robot_state
-        obj_position, obj_orientation = obj_state
-
-        # Calculate relative position in 3D Cartesian coordinates
-        relative_position = [obj_pos - rob_pos for rob_pos, obj_pos in zip(robot_position, obj_position)]
-
-        # Calculate relative orientation in quaternion
-        relative_orientation = self.calculate_relative_orientation(robot_orientation, obj_orientation)
-
-        return relative_position, relative_orientation
-
-    def calculate_relative_orientation(self, robot_orientation, obj_orientation):
-        # Convert lists to quaternion objects
-        robot_quat = quaternion.quaternion(*robot_orientation)
-        obj_quat = quaternion.quaternion(*obj_orientation)
-
-        # Calculate the relative orientation
-        relative_orientation = robot_quat * obj_quat.inverse()
-
-        # Convert the quaternion object back to a list
-        return [relative_orientation.w, relative_orientation.x, relative_orientation.y, relative_orientation.z]
-
-    def generate_occupancy_grid(self, width, height, wall_positions, door_positions):
-        # Initialize the grid with all free space
-        grid = [[0 for _ in range(width)] for _ in range(height)]
-
-        # Set wall cells to 1
-        for (x, y) in wall_positions:
-            grid[y][x] = 1
-
-        # Set door cells to 0
-        for (x, y) in door_positions:
-            grid[y][x] = 0
-
-        return grid
     
-    def get_predicates_vector(self):
-        predicates_vector = {}
-        for predicate in self.parser.predicates:
-            print ("predicate: ", predicate)
-            predicates_vector[predicate] = self.get_predicate_vector(predicate)
-        return predicates_vector
+    def get_predicates_vectors(self):
 
-    def get_predicate_vector(self, predicate):
-        # Generate a one-hot encoded vector for a given predicate
-        predicate_vector = [0] * sum(len(v) for v in self.parser.objects.values())
-        for fact in self.parser.state:
-            if fact[0] == predicate:
-                # Get the list of all objects of this type
-                objects_of_type = []
-                for object_type, objects in self.parser.objects.items():
-                    objects_of_type.extend(objects)
-                # Get the index of the object in this list
-                try:
-                    index = objects_of_type.index(fact[1])
-                    # Set the corresponding position in the predicate vector to 1
-                    predicate_vector[index] = 1
-                except ValueError:
-                    print(f"Object {fact[1]} not found in objects list.")
-        return predicate_vector
+        facable_objects = self.parser.types['facable'] #get the types
+        facable_object_instances = [instance for faceable in facable_objects for instance in self.parser.objects.get(faceable, [])]
+
+        holdable_objects = self.parser.types['holdable']
+        holdable_object_instances = [instance for holdable in holdable_objects for instance in self.parser.objects.get(holdable, [])]
+
+        robots = self.parser.objects['robot']
+        
+        rooms = self.parser.objects['room']
+
+        facing_vector = [0] * len(facable_object_instances)
+        holding_vector = [0] * len(holdable_object_instances)
+        at_vector = [0] * len(rooms)
+
+        for predicate in self.parser.state:
+            if predicate[0] == 'facing':
+                object_index = facable_object_instances.index(predicate[1])
+                facing_vector[object_index] = 1
+            elif predicate[0] == 'hold':
+                object_index = holdable_object_instances.index(predicate[1])
+                holding_vector[object_index] = 1
+            elif predicate[0] == 'at' and predicate[2] in robots:
+                room_index = rooms.index(predicate[1])
+                at_vector[room_index] = 1
+        # print ("facing_vector: ", facing_vector)
+        # print ("holding_vector: ", holding_vector)
+        # print ("at_vector: ", at_vector)
+
+        return facing_vector + holding_vector + at_vector
     
-
+    def get_observation_space_size(self):
+        self.observation_size = len(self.get_observation())
+        return self.observation_size
+    
 # testing
 def main():
     # Specify the paths to your domain and problem PDDL files

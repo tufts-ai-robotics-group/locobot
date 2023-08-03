@@ -212,6 +212,7 @@ if __name__ == "__main__":
 
     # Print all grounded actions
     print("Grounded actions:")
+    print (len(action_gen.grounded_actions))
     for action in action_gen.grounded_actions:
         print(action)
 

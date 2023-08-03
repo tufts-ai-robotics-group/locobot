@@ -16,6 +16,7 @@
     <arg name="use_cpp_interface"                   default="true"/>
     <arg name="use_python_interface"                default="true"/>
     <arg name="camera_tilt_angle"                   default="0.7"/>
+    <arg name="use_rviz"                          default="true"/>
 
     <!-- driver -->
     <include file="$(find interbotix_xslocobot_control)/launch/xslocobot_control.launch">
@@ -31,6 +32,7 @@
         <arg name="load_configs"                      value="true"/>
         <arg name="use_base"                          value="true"/>
         <arg name="use_dock"                          value="true"/>
+        <arg name="use_rviz"                          value="$(arg use_rviz)"/>
     </include>
 
     <!-- perception -->
@@ -97,6 +99,8 @@
         <arg name="use_camera"                        value="$(arg use_camera)"/>
         <arg name="publish_monitored_planning_scene"  value="true" />
     </include>
+
+    <include file="$(find gpd_ros)/launch/ur5.launch" />
 
     <rosparam file="$(find interbotix_xslocobot_ros_control)/config/$(arg dof)dof_controllers.yaml" command="load" ns="$(arg robot_name)"/>
     <rosparam file="$(find interbotix_xslocobot_ros_control)/config/hardware.yaml" command="load" ns="$(arg robot_name)"/>

@@ -1,9 +1,8 @@
 import gymnasium as gym
-from torch import nn
 
 class Learner:
     """
-    Base Abstract Class for Learner
+    A Baseline random learner that randomly samples actions
     """
     def __init__(self, obs_space: gym.Space, act_space: gym.Space) -> None: 
         self.obs_space = obs_space
@@ -18,7 +17,7 @@ class Learner:
         }
 
     def get_action(self, obs):
-        raise NotImplementedError
+        return self.act_space.sample()
     
-    def update(self, transition_dict):
-        raise NotImplementedError
+    def update(self, obs):
+        pass

@@ -1,0 +1,5 @@
+approach ball_1 room_1 doorway_1
+place doorway_1 room_1 ball_1
+pick ball_1 room_1
+approach bin_1 room_1 nothing
+place ball_1 room_1 bin_1

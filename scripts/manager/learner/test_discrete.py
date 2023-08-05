@@ -2,7 +2,7 @@ from ppo_learner import PPOLearner
 import gymnasium as gym
 
 def test():
-    env = gym.make("CartPole-v1", max_episode_steps=200, render_mode="human")
+    env = gym.make("CartPole-v1", max_episode_steps=200)
     learner = PPOLearner(
         obs_space=env.observation_space,
         act_space=env.action_space,

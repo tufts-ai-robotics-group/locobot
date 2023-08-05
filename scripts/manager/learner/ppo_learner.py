@@ -5,7 +5,6 @@ import numpy as np
 
 import tianshou as ts
 from tianshou.utils.net.common import Net, ActorCritic, MLP
-from tianshou.utils.net.discrete import Actor, Critic
 
 class PPOLearner:
     """
@@ -27,10 +26,7 @@ class PPOLearner:
 
         self.device = device
         self.actor_net = Net(np.prod(obs_space.shape), act_space.n, softmax=True, device=device)
-        self.critic_net = nn.Sequential(
-            nn.Linear(np.prod(obs_space.shape), hidden_sizes[0]), nn.ReLU(inplace=True),
-            nn.Linear(hidden_sizes[0], 1)
-        ).to(device)
+        self.critic_net = MLP(np.prod(obs_space.shape), 1, hidden_sizes=hidden_sizes, device=device)
         actor_critic = ActorCritic(self.actor_net, self.critic_net)
         self.optim = torch.optim.Adam(actor_critic.parameters(), lr=lr)
         self.policy = ts.policy.PPOPolicy(

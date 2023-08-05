@@ -1,6 +1,7 @@
 import re
 from os import mkdir
 from os.path import exists, join
+from pddl_parser.PDDL import PDDL_Parser
 
 class Planner:
     """
@@ -46,16 +47,16 @@ class Planner:
         self._predicates = {}  # Dictionary to store predicate names and number of inputs
         self._preconditions = {} # Dictionary to store the action names and the corresponding precondition check function
         self._effects = {} # Dictionary to store the action names and the corresponding effect check function
-        try:
-            self._domain_file = open(domain_path, 'r')
-            self.__parse_predicates() # Parse the predicates in the domain file, populate self._predicates
-            self.__verify_predicates(predicate_funcs) # Verify predicates against function dictionar
-            self._predicate_funcs = predicate_funcs
-            self.__parse_actions() # Parse the actions in the domain file, populate self._preconditions and self._effects
-            self._domain_file.close()
 
-        except IOError:
-            raise Exception("Error opening the domain file.")
+        self._parser = PDDL_Parser()
+        self._parser.parse_domain(self._domain_path)
+
+        self.__parse_predicates()
+        self.__verify_predicates(predicate_funcs) # Verify predicates against function dictionar
+
+        self._predicate_funcs = predicate_funcs
+        self.__parse_actions() # Parse the actions in the domain file, populate self._preconditions and self._effects
+
 
         self.plan_file_directory = join(self.problem_dir, "plan")
         if not exists(self.plan_file_directory):
@@ -124,7 +125,9 @@ class Planner:
         Returns:
             bool: If the preconditions are satisfied.
         """
-        return self._preconditions[action](*args)
+        for pred in self._preconditions[action]:
+            if not pred['func'](pred['name'], pred['arg_indecies'], pred['consts'], *args):
+                return False
     
     def verify_effects(self, 
                        action: str, 
@@ -139,7 +142,11 @@ class Planner:
         Returns:
             bool: If the effects are satisfied.
         """
-        return self._preconditions[action](*args)
+        for pred in self._effects[action]:
+            print(pred['name'])
+            if not pred['func'](pred['name'], pred['arg_indecies'], pred['consts'], *args):
+                return False
+        
     
     def new_problem(self):
         """
@@ -177,19 +184,8 @@ class Planner:
 
         This function does not return anything but saves the parsed predicates as a class member.
         """
-        predicate_pattern = re.compile(r'\(predicates(.+?)\)', re.DOTALL | re.IGNORECASE)
-        predicate_section = re.search(predicate_pattern, self._domain_file.read())
-
-        if predicate_section:
-            predicates_text = predicate_section.group(1)
-            predicate_lines = predicates_text.strip().split('\n')
-            for line in predicate_lines:
-                line = line.strip()
-                if line.startswith('('):
-                    predicate_parts = line[1:-1].split()
-                    predicate_name = predicate_parts[0]
-                    input_count = len(predicate_parts) - 1
-                    self._predicates[predicate_name] = input_count
+        for predicate, args in self._parser.predicates.items():
+            self._predicates[predicate] = len(args) 
 
     def __verify_predicates(self, 
                             function_dict: dict) -> None:
@@ -220,62 +216,20 @@ class Planner:
 
         This function populates the self._preconditions and self._effects dictionaries.
         """
-        action_pattern = re.compile(r'\(action(.+?)\)', re.DOTALL | re.IGNORECASE)
-        action_sections = re.findall(action_pattern, self._domain_file.read())
+        for action in self._parser.actions:
+            self._actions.append(action.name)
+            parameters = [param[0] for param in action.parameters]
+            self._preconditions[action.name] = self.__build_boolean_function(action.positive_preconditions,
+                                                                             action.negative_preconditions,
+                                                                             parameters)
 
-        for action_section in action_sections:
-            action_lines = action_section.strip().split('\n')
-            action_name = None
-            parameters = []
-            preconditions = []
-            effects = []
-
-            for line in action_lines:
-                line = line.strip()
-                if line.startswith(':parameters'):
-                    parameters = [param for param in line.split() if param.startwith("?")]
-                if line.startswith(':action'):
-                    action_name = line.split()[1]
-                elif line.startswith(':precondition'):
-                    preconditions = self.__parse_condition(line.split(':precondition')[1].strip())
-                elif line.startswith(':effect'):
-                    effects = self.__parse_condition(line.split(':effect')[1].strip())
-
-            if action_name:
-                self._action.append(action_name)
-                self._preconditions[action_name] = self.__build_boolean_function(preconditions, parameters)
-                self._effects[action_name] = self.__build_boolean_function(effects, parameters)
-
-    def __parse_condition(self, 
-                          condition_text: str) -> list:
-        """
-        Parse a condition (precondition or effect) and build a corresponding function.
-
-        Args:
-            condition_text (str): The text representation of the condition.
-
-        Returns:
-            list: The parsed condition as a nested list representing the condition tree.
-        """
-        conditions = []
-
-        # Split condition text based on 'and', 'or', and 'not' keywords
-        condition_parts = re.split(r'\b(and|or|not)\b', condition_text, flags=re.IGNORECASE)
-        condition_parts = [part.strip() for part in condition_parts if part.strip()]
-
-        for part in condition_parts:
-            if part.lower() == 'and' or part.lower() == 'or':
-                conditions.append(part.lower())
-            elif part.lower() == 'not':
-                conditions.append('not')
-            else:
-                predicate_name, args = self.__parse_predicates(part)
-                conditions.append((predicate_name, args))
-
-        return conditions
+            self._effects[action.name] = self.__build_boolean_function(action.add_effects,
+                                                                       action.del_effects,
+                                                                       parameters)
     
     def __build_boolean_function(self, 
-                                 condition: list, 
+                                 pos_conds: set,
+                                 neg_conds: set, 
                                  params: list):
         """
         Build a boolean function for a parsed condition using predicates.
@@ -287,22 +241,55 @@ class Planner:
         Returns:
             function: The constructed boolean function.
         """
-        if condition[0] == 'and':
-            return lambda *args: all(self.__build_boolean_function(cond, params)(*args) for cond in condition[1:])
-        elif condition[0] == 'or':
-            return lambda *args: any(self.__build_boolean_function(cond, params)(*args) for cond in condition[1:])
-        elif condition[0] == 'not':
-            return lambda *args: not self.__build_boolean_function(condition[1], params)(*args)
-        else:
-            predicate_name = condition[0]
-            predicate_args = condition[1:]
-            p_arg_indecies = [params.index(arg) for arg in predicate_args]
-            predicate_function = self._predicate_funcs[predicate_name]
+
+        funcs = []
+        for cond in pos_conds:
+            predicate_name = cond[0]
+            predicate_args = cond[1:]
+            p_arg_indecies = []
+            const_args = []
+            for i, arg in enumerate(predicate_args):
+                try:
+                    p_arg_indecies.append(params.index(arg))
+                except ValueError:
+                    const_args.append((i, arg))
 
             # Only pass relavent arguments to predicate function
-            return lambda *args: predicate_function(*[args[index] for index in p_arg_indecies])
+            def func(name, arg_indecies, consts, *args):
+                args = list(args)
+                args = [args[i] for i in arg_indecies]
+                for (i, val) in consts:
+                    args.insert(i, val)
+                return self._predicate_funcs[name](*args)
 
-    def __generate_problem_str(self) -> str:
+
+            funcs.append({'name': predicate_name, 'arg_indecies': p_arg_indecies, 'consts': const_args, 'func': func})
+        
+        for cond in neg_conds:
+            predicate_name = cond[0]
+            predicate_args = cond[1:]
+            p_arg_indecies = []
+            const_args = []
+            for i, arg in enumerate(predicate_args):
+                try:
+                    p_arg_indecies.append(params.index(arg))
+                except ValueError:
+                    const_args.append((i, arg))
+
+            # Only pass relavent arguments to predicate function
+            def func(name, arg_indecies, consts, *args):
+                args = list(args)
+                args = [args[i] for i in arg_indecies]
+                for (i, val) in consts:
+                    args.insert(i, val)
+                return self._predicate_funcs[name](*args)
+
+
+            funcs.append({'name': predicate_name, 'arg_indecies': p_arg_indecies, 'consts': const_args, 'func': func})
+
+        return funcs
+    
+    def generate_problem_str(self) -> str:
         """
         User defined function to create a string representation of the problem file. 
         Creates string being problem file contents based on current state.
@@ -324,7 +311,7 @@ class Planner:
             Exception: If there is an error opening or writing to the problem file.
 
         """
-        problem_str = self.__generate_problem_str()
+        problem_str = self.generate_problem_str()
         problem_path = join(self.problem_dir, f"{self.problem_prefix}_{str(self._file_counter)}.pddl")
         
         # Open and write to problem file
@@ -335,7 +322,7 @@ class Planner:
         except IOError:
             raise Exception("Error opening/writing to problem file.")
         
-    def __generate_plan_str(self) -> str:
+    def generate_plan_str(self) -> str:
         """
         User defined function to create a string representation of the plan file.
         Each line of the string must contain one action call. The action call 
@@ -375,7 +362,7 @@ class Planner:
             Exception: If there is an error opening or writing to the plan file.
 
         """
-        self.plan_str = self.__generate_plan_str()
+        self.plan_str = self.generate_plan_str()
         plan_path = join(self.plan_file_directory, f"{self.problem_prefix}_{str(self._file_counter)}")
         
         # Open and write to problem file

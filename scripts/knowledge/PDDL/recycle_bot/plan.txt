@@ -1,0 +1,38 @@
+
+ff: parsing domain file
+domain 'RECYCLE_BOT' defined
+ ... done.
+ff: parsing problem file
+problem 'RECYCLE' defined
+ ... done.
+
+
+no metric specified.
+
+ff: search configuration is Enforced Hill-Climbing, if that fails then best-first search.
+Metric is plan length.
+NO COST MINIMIZATION (and no cost-minimizing relaxed plans).
+
+Cueing down from goal distance:    6 into depth [1]
+                                   5            [1]
+                                   4            [1]
+                                   3            [1]
+                                   2            [1]
+                                   1            [1]
+                                   0            
+
+ff: found legal plan as follows
+step    0: APPROACH BALL_1 ROOM_1 NOTHING
+        1: PICK BALL_1 ROOM_1
+        2: APPROACH DOORWAY_1 ROOM_1 BALL_1
+        3: PASS_THROUGH_DOOR ROOM_1 ROOM_2 DOORWAY_1
+        4: APPROACH BIN_1 ROOM_2 NOTHING
+        5: PLACE BALL_1 ROOM_2 BIN_1
+
+time spent:    0.00 seconds instantiating 274 easy, 0 hard action templates
+               0.00 seconds reachability analysis, yielding 49 facts and 93 actions
+               0.00 seconds creating final representation with 42 relevant facts, 0 relevant fluents
+               0.00 seconds computing LNF
+               0.00 seconds building connectivity graph
+               0.00 seconds searching, evaluating 8 states, to a max depth of 1
+               0.00 seconds total time

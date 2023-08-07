@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-# approach action
 import rospy
+from locobot.srv import Approach
 from geometry_msgs.msg import PoseStamped, Point, Quaternion
 
 GOAL_LOCATIONS = {
@@ -37,10 +37,9 @@ GOAL_LOCATIONS = {
 
 def initialize_ros_node():
     if not rospy.get_node_uri():
-        rospy.init_node('send_goal_node', anonymous=True)
+        rospy.init_node('approach_server', anonymous=True)
 
 def send_goal(goal_name: str):
-    initialize_ros_node()
     goal_pub = rospy.Publisher('/locobot/move_base_simple/goal', PoseStamped, queue_size=10)
     rospy.sleep(1)  # Allow time for publishers to initialize
 
@@ -53,3 +52,17 @@ def send_goal(goal_name: str):
 
     goal_pub.publish(goal)
     rospy.loginfo("Goal sent!")
+
+    return True, "Goal sent!"
+
+def handle_approach(req):
+    rospy.loginfo("Executing approach action towards %s", req.target)
+
+    success, info = send_goal(req.target)
+
+    return Approach._response_class(success, info)
+
+if __name__ == "__main__":
+    initialize_ros_node()
+    rospy.Service('approach', Approach, handle_approach)
+    rospy.spin()

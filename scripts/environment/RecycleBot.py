@@ -1,3 +1,5 @@
+import rospy
+
 import gym
 from gym import spaces
 
@@ -5,6 +7,9 @@ from gym import spaces
 from ObservationGenerator import ObservationGenerator
 from RewardFunction import RewardFunction
 from ActionGenerator import ActionSpaceGenerator
+
+# ROS related modules
+from locobot.srv import Approach, Grasp, Place
 
 class RecycleBot(gym.Env):
     def __init__(self, knowledge_base):
@@ -35,22 +40,29 @@ class RecycleBot(gym.Env):
 
     def execute_action(self, action):
         action_name = self.action_mapping[action]
+        
+        # Assuming actions like "approach <object>", "grasp <object>", etc.
         action_type, target = action_name.split(" ")
 
-        # Here, we don't call any ROS functions directly.
-        # Instead, we communicate with the bridge node which will handle the ROS interaction.
-        # This can be done using any IPC method - for simplicity, let's assume a shared variable, 
-        # but you'd typically use something more robust like a socket, named pipe, etc.
-        
-        shared_variable = {"action_type": action_type, "target": target}
-        
-        # You'd then wait for the bridge node to update this shared state with the result of the action.
-        # (This is a simplification; in practice, you might use some form of signaling or event system.)
-        while not "result" in shared_variable:
-            pass  # Waiting for result to be populated by bridge node
+        if action_type == "approach":
+            success, info = self.call_service('execute_approach', target, Approach)
+        elif action_type == "grasp":
+            success, info = self.call_service('execute_grasp', target, Grasp)
+        elif action_type == "place":
+            success, info = self.call_service('execute_place', target, Place)
 
-        executed_info = shared_variable["result"]
-        return executed_info
+        return success, info
+
+    def call_service(self, service_name, target, service_type):
+        rospy.wait_for_service(service_name)
+
+        try:
+            execute_action = rospy.ServiceProxy(service_name, service_type)
+            resp = execute_action(target)
+            return resp.success, resp.info
+        except rospy.ServiceException as e:
+            print("Service call failed: %s"%e)
+            return False, str(e)
 
     def render(self, mode='human'):
         pass

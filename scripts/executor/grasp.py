@@ -4,7 +4,7 @@ import rospy
 from geometry_msgs.msg import PoseStamped
 from universal_move_arm import LBMoveIt
 
-def place_callback(data):
+def grasp_callback(data):
     # Initialize the arm and gripper group using the LBMoveIt class
     arm_group = LBMoveIt(group="arm")
     gripper_group = LBMoveIt(group="gripper")
@@ -12,9 +12,9 @@ def place_callback(data):
     # Move the arm to the desired pose
     arm_group.go_to_pose_goal(data.pose)
 
-    # Open the gripper to release the object
-    gripper_group.open_gripper()
+    # Close the gripper to grasp the object
+    gripper_group.close_gripper()
 
-rospy.init_node('place_node', anonymous=True)
-rospy.Subscriber("/place_pose", PoseStamped, place_callback)
+rospy.init_node('grasp_node', anonymous=True)
+rospy.Subscriber("/grasp_pose", PoseStamped, grasp_callback)
 rospy.spin()

@@ -3,6 +3,42 @@ Custom ROS package to run Planning/Learning Experiments with Locobot Robot in Si
 Built for [ROS Noetic](http://wiki.ros.org/noetic).
 Tested in Ubuntu 20.04 & Python = 3.8.10
 
+File Structure
+```
+.
+├── config
+├── launch
+├── rviz
+├── scripts
+│   ├── environment            # MDP 
+│   │   ├── __init__.py
+│   │   ├── RecycleBot.py                       # Environment Class
+│   │   ├── ActionGenerator.py                  # Action Generator
+│   │   ├── ObservationGenerator.py             # Observation Generator
+│   │   ├── RewardFunction.py                   # Reward function Generator
+│   ├── executor                # Executors
+│   │ ├── __init__.py
+│   │   ├── approach.py
+│   │   ├── grasp.py
+│   │   ├── place.py
+│   │   └── universal_move_arm.py
+│   ├── knowledge                  
+│   │   ├── PDDL                                 # PDDL files
+│   │   └── pddl-parser                          # PDDL parsing
+│   ├── agent                   # Agent
+│   │   ├── __init__.py
+│   │   ├── RecycleBotPlanner.py                # Planning agent
+│   │   ├── dummy_planner.py
+│   │   ├── learner                             # Reinforcement Learning agent
+│   │   └── planner
+│   ├── manager                 # Run
+│   │   ├── __init__.py
+│   │   ├── experiment.py
+├── srv
+└── worlds
+```
+
+
 ## Simulation
 #### Launch the simulation with the pre-built map
 

@@ -97,8 +97,8 @@ def debug():
     while not rospy.is_shutdown():
         pose = ball_pose_calculator.get_pose(pitch=1.4, z_offset=0.05)
         
-        print("---------")
-        print(pose)
+        # print("---------")
+        # print(pose)
 
         # publish to rviz
         pub.publish(ball_pose_calculator.locobot_to_world(pose))

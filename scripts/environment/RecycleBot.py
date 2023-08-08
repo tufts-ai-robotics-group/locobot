@@ -9,7 +9,7 @@ from RewardFunction import RewardFunction
 from ActionGenerator import ActionSpaceGenerator
 
 # ROS related modules
-from locobot.srv import Approach, Grasp, Place
+from locobot_custom.srv import Approach, Grasp, Place
 
 class RecycleBot(gym.Env):
     def __init__(self, knowledge_base):

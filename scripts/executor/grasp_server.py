@@ -3,9 +3,9 @@
 import rospy
 from geometry_msgs.msg import PoseStamped
 from universal_move_arm import LBMoveIt
-from locobot.srv import Place
+from locobot_custom.srv import Grasp
 
-def handle_place(req):
+def handle_grasp(req):
     # Initialize the arm and gripper group using the LBMoveIt class
     arm_group = LBMoveIt(group="arm")
     gripper_group = LBMoveIt(group="gripper")
@@ -16,15 +16,15 @@ def handle_place(req):
     if not success:
         return {"success": False, "message": "Failed to move arm to target pose"}
 
-    # Open the gripper to release the object
-    gripper_group.open_gripper()
+    # Close the gripper to grasp the object
+    gripper_group.close_gripper()
 
-    return {"success": True, "message": "Successfully placed object at target pose"}
+    return {"success": True, "message": "Successfully grasped object at target pose"}
 
-def place_server():
-    rospy.init_node('place_service')
-    s = rospy.Service('place', Place, handle_place)
+def grasp_server():
+    rospy.init_node('grasp_service')
+    s = rospy.Service('grasp', Grasp, handle_grasp)
     rospy.spin()
 
 if __name__ == "__main__":
-    place_server()
+    grasp_server()

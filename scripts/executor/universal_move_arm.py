@@ -24,7 +24,9 @@ from six.moves import input
 from std_msgs.msg import String
 from tf.transformations import quaternion_from_euler
 from moveit_commander.conversions import pose_to_list
+# from locobot_custom.obtain_pick_item_pose import PickUpPoseCalculator
 from obtain_pick_item_pose import PickUpPoseCalculator
+# from executor.utils.obtain_pickup_item_pose import PickUpPoseCalculator
 
 def all_close(goal, actual, tolerance):
     """

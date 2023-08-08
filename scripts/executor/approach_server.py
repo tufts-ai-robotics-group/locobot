@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
 import rospy
-from locobot.srv import Approach
+# from locobot_custom.srv import Approach 
+from locobot_custom.srv import Approach
+ 
+
 from geometry_msgs.msg import PoseStamped, Point, Quaternion
 
 GOAL_LOCATIONS = {
@@ -60,7 +63,7 @@ def handle_approach(req):
 
     success, info = send_goal(req.target)
 
-    return Approach._response_class(success, info)
+    return {"success": success, "message": info}
 
 if __name__ == "__main__":
     initialize_ros_node()

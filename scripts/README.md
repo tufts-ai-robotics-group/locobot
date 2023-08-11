@@ -19,7 +19,13 @@ Each of these softwares use each contain installation instructions in their resp
 * [Moveit](https://github.com/ros-planning/moveit)
 
 ### Run
-First, run the perception stack
+First, SSH into the robot
+
+```
+ssh -X locobot@10.0.60.2
+```
+
+Next, run the perception stack
 
 ```
 roslaunch locobot_custom nav_moveit_perception.launch

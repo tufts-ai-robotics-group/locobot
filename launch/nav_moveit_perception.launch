@@ -101,6 +101,7 @@
     </include>
 
     <include file="$(find gpd_ros)/launch/ur5.launch" />
+    <include file="$(find darknet_ros)/launch/darknet_ros.launch" />
 
     <rosparam file="$(find interbotix_xslocobot_ros_control)/config/$(arg dof)dof_controllers.yaml" command="load" ns="$(arg robot_name)"/>
     <rosparam file="$(find interbotix_xslocobot_ros_control)/config/hardware.yaml" command="load" ns="$(arg robot_name)"/>

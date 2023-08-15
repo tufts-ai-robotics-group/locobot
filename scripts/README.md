@@ -59,7 +59,7 @@ In another terminal
 
 ## Params
 
-Please go into the ```GPD_pick_and_place.py``` script and adjust the parameters at the top of the screen. These are labeled according to what they control and should be filled out appropriately. Additionally some are dependent on the components being used for instance one of the parameters is for the tuning parameters of the camera and has instructions on how to find those. 
+Please go into the ```GPD_pick_and_place.py``` script and adjust the parameters at the top of the screen. These are labeled according to what they control and should be filled out appropriately. Additionally, some are dependent on the components being used for instance one of the parameters is for the tuning parameters of the camera and has instructions on how to find those.
 
 You should also go through and change the parameters in ```ros_eigen_params.cfg``` in the GPD software under the ```cfg``` folder. This contains many parameters that are dependent on your robot and are also used to tune the software to your liking. 
 
@@ -85,7 +85,7 @@ Upon deleting cloud pointer results into double free memory https://github.com/a
 The program also has to send a message to GPD 2 times with a bit of time between each sent message. We can't tell why this is as when we ran the program without waiting between messages that sent it would take 8 sent messages for GPD to receive one.
 
 </BR>
-#### Questions/Issues
+# Questions/Issues
 For questions and issues, please contact:
 Andrew Esteves @ esteves@hartford.edu 
 Shivam Goel @ shivam.goel@tufts.edu

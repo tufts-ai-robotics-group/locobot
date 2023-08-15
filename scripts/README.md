@@ -59,13 +59,13 @@ In another terminal
 
 ## Params
 
-Please go into the ```GPD_pick_and_place.py``` script and adjust the parameters at the top of the screen. These are labeled according to what they control and should be filled out appropriately. Additionally, some are dependent on the components being used for instance one of the parameters is for the tuning parameters of the camera and has instructions on how to find those.
+Please go into the ```GPD_pick_and_place.py``` script and adjust the parameters at the top of the screen. These are labeled according to what they control and should be filled out appropriately. Additionally, some depend on the components being used; for instance, one of the parameters is for the tuning parameters of the camera and has instructions on how to find those.
 
 You should also go through and change the parameters in ```ros_eigen_params.cfg``` in the GPD software under the ```cfg``` folder. This contains many parameters dependent on your robot and is used to tune the software to your liking. 
 
 ## Troubleshooting
 
-Ensure ``GPD_pick_and_place``` is subscribed to ```/locobot/camera/depth/color/points``` topic.
+Ensure ```GPD_pick_and_place``` is subscribed to ```/locobot/camera/depth/color/points``` topic.
 
 To rebuild, **delete** `devel` and `build` from `interbotix_ws` & **delete** `build` from the `GPD` directory, then ```catkin_make```.
 This might fail, but you need to do this to remake the `build` & `devel` folders enough where GPD can install correctly. From there, you can follow the installation instructions on the GPD GitHub and then ```catkin_make``` your `interbotix_ws` and have it build successfully.
@@ -76,14 +76,14 @@ This might fail, but you need to do this to remake the `build` & `devel` folders
 
 * The robot has issues with processing times in YOLO and performing IK on potential grasps sent by GPD efficiently. The YOLO process can be sped up by processing it on an external Nvidia Jetson as they take advantage of its GPU acceleration. IK speed could potentially be improved by using an external IK solver library IKPy. A function utilizing this library can be found in the program. Needs testing.
 
-* One of the other issues is that the YOLO aspect of the program takes a point which is not close enough to the point cloud, meaning that GPD can not figure out the object it is referring to. This prevents us from using YOLO properly but could potentially be resolved in the future with careful tuning and calibration of the camera.
+* One of the other issues is that the YOLO aspect of the program takes a point that is not close enough to the point cloud, meaning that GPD can not figure out the object it is referring to. This prevents us from using YOLO properly but could potentially be resolved in the future with careful tuning and calibration of the camera.
 
 * Should program to, instead of filter yaw, make the robot move to a position where it will be graspable. This means communicating with the Roomba base. Eventually, utilizing the navigation task.
 
 ## Current major issues
 Upon deleting cloud pointer results in double free memory https://github.com/atenpas/gpd_ros/issues/12. For now, we have gotten rid of the delete command, which is causing ram usage to increase over time, but with how we plan to use it (Run GPD only before the robot wants to grasp), this shouldn't be a problem but should be addressed soon.
 
-The program also has to send a message to GPD 2 times with a bit of time between each sent message. We can't tell why this is, as when we ran the program without waiting between messages that were sent, it would take 8 sent messages for GPD to receive one.
+The program also has to send a message to GPD 2 times with a bit of time between each sent message. We can't tell why this is, as when we ran the program without waiting between messages that were sent, it would take ```8``` sent messages for GPD to receive one.
 
 ## Questions/Issues
 For questions and issues, please contact: </BR>

@@ -61,12 +61,13 @@ class Agent(object):
 
     
     ######################################### Subsymbolic Side ###############################################
-    def __load_executor(self, 
-                        action: str):
-        pass 
+    def load_and_run_executor(self, 
+                              action: str):
+        raise NotImplementedError
+         
 
-    def __learn_executor(self):
-        
+    def learn_executor(self):
+        raise NotImplementedError        
 
     def run(self):
         # Initialize problem
@@ -78,9 +79,9 @@ class Agent(object):
             
             if status != SymStatus.SUCCESS:
                 try:
-                    self.__load_executor(action[0])
+                    self.load_and_run_executor(action[0])
                 except FileNotFoundError:
-                    self.__learn_executor()
+                    self.learn_executor()
             
 
 

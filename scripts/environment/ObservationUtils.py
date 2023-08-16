@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 import rospy
 import numpy as np
+from shapely.geometry import Point
+from shapely.geometry import Polygon
+from geometry_msgs.msg import PoseWithCovarianceStamped
 from gazebo_msgs.msg import ModelStates
 from tf.transformations import euler_from_quaternion
 
@@ -11,6 +14,22 @@ class GazeboObservationGenerator:
 
         # Store the name of the robot
         self.robot_name = robot_name
+
+        # Get at boundaries
+        try:
+            self.object_tags = rospy.get_param("object_tags")
+            self.param_at_boundaries = rospy.get_param("at_boundaries")
+        except (KeyError, rospy.ROSException):
+            rospy.logerr("Error getting parameters.")
+            raise ValueError
+
+        self.at_boundaries = {}
+        for boundary_name, boundary_edges in self.param_at_boundaries.items():
+            edges = []
+            for edge in boundary_edges:
+                edges.append((edge[0], edge[1]))
+            polygon = Polygon(edges)
+            self.at_boundaries[boundary_name] = polygon
 
     def get_occupancy_grid(self):
         # Get model states
@@ -99,6 +118,21 @@ class GazeboObservationGenerator:
                 relative_locations_and_orientations.append((relative_location, relative_orientation))
 
         return relative_locations_and_orientations
+
+    def get_at_predicate(self):
+        
+        odom_pose = rospy.wait_for_message(
+            "/amcl_pose", PoseWithCovarianceStamped, rospy.Duration(1)
+        )
+        odom_pose = odom_pose.pose.pose
+
+        at = "nothing"
+        point = Point(odom_pose.position.x, odom_pose.position.y)
+        for boundary_name, boundary_polygon in self.at_boundaries.items():
+            if boundary_polygon.contains(point):
+                at = boundary_name
+                if boundary_name == "nothing":
+                    break
 
 def test():
     # Create an instance of GazeboObservationGenerator

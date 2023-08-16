@@ -42,7 +42,6 @@ class Planner:
         self._domain_path = domain_path
         self._problem_dir = problem_dir
         self._problem_prefix = problem_prefix
-        self._file_counter = 0  # Initialize the file counter to 0
         self._actions = []
         self._predicates = {}  # Dictionary to store predicate names and number of inputs
         self._preconditions = {} # Dictionary to store the action names and the corresponding precondition check function
@@ -143,7 +142,6 @@ class Planner:
             bool: If the effects are satisfied.
         """
         for pred in self._effects[action]:
-            print(pred['name'])
             if not pred['func'](pred['name'], pred['arg_indecies'], pred['consts'], *args):
                 return False
         
@@ -232,10 +230,10 @@ class Planner:
                                  neg_conds: set, 
                                  params: list):
         """
-        Build a boolean function for a parsed condition using predicates.
+        Build a boolean function dict for a parsed condition using predicates.
 
         Args:
-            condition (list): Parsed condition as a nested list.
+            pos_conds (set): Parsed pos condition as 
             params (list): A list of strings representing the PDDL action parameters.
 
         Returns:
@@ -312,7 +310,7 @@ class Planner:
 
         """
         problem_str = self.generate_problem_str()
-        problem_path = join(self.problem_dir, f"{self.problem_prefix}_{str(self._file_counter)}.pddl")
+        problem_path = join(self.problem_dir, f"{self.problem_prefix}.pddl")
         
         # Open and write to problem file
         try:

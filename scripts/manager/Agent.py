@@ -1,5 +1,4 @@
 from planner.Planner import Planner
-from learner.Learner import Learner
 
 from enum import Enum
 
@@ -8,7 +7,7 @@ class SymStatus(Enum):
     PRECONDITION_FAILURE=1
     EFFECT_FAILURE=2
 
-class Manager(object):
+class Agent(object):
 
     def __init__(self,
                  planner: Planner,

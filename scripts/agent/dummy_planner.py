@@ -1,6 +1,6 @@
 from RecycleBotPlanner import RecycleBotPlanner
 from pddl_parser.PDDL import PDDL_Parser
-from Manager import Manager
+from Agent import Agent
 
 predicates = {
     'at': lambda x, y : True,
@@ -33,5 +33,5 @@ problem_dir = "/Users/bharatkesari/dev/tufts/locobot/scripts/knowledge/PDDL/recy
 pass
 
 planner = RecycleBotPlanner(domain_path, problem_dir, "problem", predicates, obj)
-manager = Manager(planner, sym_actions)
+manager = Agent(planner, sym_actions)
 manager.run()

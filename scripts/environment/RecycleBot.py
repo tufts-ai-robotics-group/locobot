@@ -1,4 +1,5 @@
 import rospy
+from NovelGym import NovelGym
 
 import gym
 from gym import spaces
@@ -11,7 +12,7 @@ from ActionGenerator import ActionSpaceGenerator
 # ROS related modules
 from locobot_custom.srv import Approach, Grasp, Place
 
-class RecycleBot(gym.Env):
+class RecycleBot(gym.Env, NovelGym):
     def __init__(self, knowledge_base):
         super(RecycleBot, self).__init__()
 
@@ -30,7 +31,7 @@ class RecycleBot(gym.Env):
         observation = self.observation_generator.get_observation()
         reward, done = self.reward_function_generator.get_reward(executed_info, action)
         info = {}
-        return observation, reward, done, info
+        return (observation, reward, done, info)
 
     def reset(self):
         self.observation_generator.reset()

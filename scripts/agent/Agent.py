@@ -1,4 +1,6 @@
 from planner.Planner import Planner
+from learner.Learner import Learner
+from environment.NovelGym import NovelGym
 
 from enum import Enum
 
@@ -11,9 +13,13 @@ class Agent(object):
 
     def __init__(self,
                  planner: Planner,
+                 learner: Learner,
+                 env: NovelGym,
                  sym_actions: dict) -> None:
 
         self._planner = planner
+        self._learner = learner
+        self._env = env
 
         # Verify that there is a symbolic action function for each planner action
         sym_actions_set = set(sym_actions.keys())
@@ -55,7 +61,12 @@ class Agent(object):
 
     
     ######################################### Subsymbolic Side ###############################################
-    
+    def __load_executor(self, 
+                        action: str):
+        pass 
+
+    def __learn_executor(self):
+        
 
     def run(self):
         # Initialize problem
@@ -63,9 +74,13 @@ class Agent(object):
 
         # Loop through actions in plan 
         while action := self.__next_action():
-            print(action)
             status = self.__execute_action(*action)
-            print(status)
+            
+            if status != SymStatus.SUCCESS:
+                try:
+                    self.__load_executor(action[0])
+                except FileNotFoundError:
+                    self.__learn_executor()
             
 
 

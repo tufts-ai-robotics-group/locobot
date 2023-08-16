@@ -16,11 +16,11 @@ GOAL_LOCATIONS = {
         "position": Point(x=2.521484613418579, y=-2.043757200241089, z=0.0),
         "orientation": Quaternion(x=0.0, y=0.0, z=-0.7040760069197588, w=0.7101246203871034)
     },
-    "doorway_facing_green": {
+    "doorway_facing_room1": {
         "position": Point(x=0.3962286114692688, y=0.09294455498456955, z=0.0),
         "orientation": Quaternion(x=0.0, y=0.0, z=0.9999957096443621, w=0.0029292819715136826)
     },
-    "doorway_facing_blue": {
+    "doorway_facing_room2": {
         "position": Point(x=-0.6024703979492188, y=0.1385389119386673, z=0.0),
         "orientation": Quaternion(x=0.0, y=0.0, z=-0.004361087136426318, w=0.9999904904142781)
     },

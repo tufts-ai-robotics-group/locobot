@@ -62,6 +62,7 @@ add_service_files(
   Approach.srv
   Grasp.srv
   Place.srv
+  GazeboObservationService.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -175,6 +176,7 @@ catkin_install_python(PROGRAMS
   scripts/executor/grasp_server.py scripts/executor/tests/test_grasp.py scripts/obtain_pick_item_pose.py 
   scripts/executor/universal_move_arm.py
   scripts/executor/place_server.py scripts/executor/tests/test_place.py
+  scripts/environment/observation_server_gazebo.py scripts/environment/tests/test_observation_gazebo_client.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

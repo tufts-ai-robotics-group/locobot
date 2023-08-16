@@ -1,5 +1,6 @@
 import rospy
 import numpy as np
+
 from gazebo_msgs.msg import ModelStates
 from tf.transformations import euler_from_quaternion
 from locobot_custom.srv import GazeboObservationService, GazeboObservationResponse
@@ -121,20 +122,20 @@ class GazeboObservationGenerator:
 
         return relative_locations_and_orientations
 
-    def get_at_predicate(self):
+    # def get_at_predicate(self):
         
-        odom_pose = rospy.wait_for_message(
-            "/amcl_pose", PoseWithCovarianceStamped, rospy.Duration(1)
-        )
-        odom_pose = odom_pose.pose.pose
+    #     odom_pose = rospy.wait_for_message(
+    #         "/amcl_pose", PoseWithCovarianceStamped, rospy.Duration(1)
+    #     )
+    #     odom_pose = odom_pose.pose.pose
 
-        at = "nothing"
-        point = Point(odom_pose.position.x, odom_pose.position.y)
-        for boundary_name, boundary_polygon in self.at_boundaries.items():
-            if boundary_polygon.contains(point):
-                at = boundary_name
-                if boundary_name == "nothing":
-                    break
+    #     at = "nothing"
+    #     point = Point(odom_pose.position.x, odom_pose.position.y)
+    #     for boundary_name, boundary_polygon in self.at_boundaries.items():
+    #         if boundary_polygon.contains(point):
+    #             at = boundary_name
+    #             if boundary_name == "nothing":
+    #                 break
 
 if __name__ == '__main__':
     generator = GazeboObservationGenerator('locobot')

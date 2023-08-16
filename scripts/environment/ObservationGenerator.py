@@ -1,7 +1,10 @@
+#!/usr/bin/env python3
+
 '''
 This class implements the observation generator for the environment.
 '''
 
+import rospy
 import sys
 import os
 import itertools
@@ -13,16 +16,24 @@ sys.path.append("../knowledge/pddl-parser")
 import numpy as np
 from pddl_parser.PDDL import PDDL_Parser
 
-from ObservationUtils import GazeboObservationGenerator
+from locobot_custom.srv import GazeboObservationService
+
+# from ObservationUtils import GazeboObservationGenerator
 
 
 class ObservationGenerator:
     def __init__(self, domain_file, problem_file):
+
+         # Initialize ROS node (if not already initialized)
+        if not rospy.get_node_uri():
+            rospy.init_node('observation_generator_client', anonymous=True)
+
         # Reference to the environment
         # self.env = env
         self.parser = PDDL_Parser()
         self.parser.parse_domain(domain_file)
         self.parser.parse_problem(problem_file)
+
         # self.observation_size = self.get_observation_size()
         # self.observation = self.get_observation()
 
@@ -32,25 +43,21 @@ class ObservationGenerator:
 
 
     def get_observation(self):
-        # Create an instance of GazeboObservationGenerator
-        # gazebo_generator = GazeboObservationGenerator()  # replace 'robot' with the actual name of your robot
+        # Call the gazebo_observation service
+        try:
+            gazebo_observation_service = rospy.ServiceProxy('gazebo_observation', GazeboObservationService)
+            response = gazebo_observation_service()
+            
+            flattened_occupancy_grid = np.array(response.occupancy_grid)
+            relative_locations = np.column_stack((response.relative_locations_x, response.relative_locations_y)).flatten()
+            relative_orientations = np.array(response.relative_orientations)
 
-        # # Get the occupancy grid
-        # occupancy_grid = gazebo_generator.get_occupancy_grid()
+            observation = np.concatenate([flattened_occupancy_grid, relative_locations, relative_orientations, self.get_predicates_vectors()])
+            return observation
 
-        # # Get the relative locations and orientations
-        # relative_locations_and_orientations = gazebo_generator.get_relative_locations_and_orientations()
-
-        # # Flatten the occupancy grid and the relative locations and orientations
-        # flattened_occupancy_grid = occupancy_grid.flatten()
-        # flattened_relative_locations_and_orientations = np.array(relative_locations_and_orientations).flatten()
-
-        # # Concatenate the flattened occupancy grid, the flattened relative locations and orientations,
-        # # and the predicate vector
-        # observation = np.concatenate([flattened_occupancy_grid, flattened_relative_locations_and_orientations, self.get_predicate_vector()])
-
-        observation = self.get_predicates_vectors()
-        return observation
+        except rospy.ServiceException as e:
+            print("Service call failed:", e)
+            return []
     
     def get_predicates_vectors(self):
 

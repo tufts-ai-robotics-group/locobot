@@ -134,6 +134,9 @@ class ActionSpaceGenerator:
         # If the object_type is not a subtype of any type, return None
         return None
     
+    def reset(self):
+        pass # dummy for now
+    
     # def get_valid_actions(self, state):
     #     """
     #     Generate a list of valid actions based on the current state of the world.

@@ -62,7 +62,7 @@ add_service_files(
   Approach.srv
   Grasp.srv
   Place.srv
-  GazeboObservationService.srv
+  GazeboObservation.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -77,6 +77,7 @@ generate_messages(
   DEPENDENCIES
   geometry_msgs 
   std_msgs
+  std_srvs
 )
 
 ################################################

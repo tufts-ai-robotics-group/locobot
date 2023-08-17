@@ -3,22 +3,33 @@ import numpy as np
 
 from gazebo_msgs.msg import ModelStates
 from tf.transformations import euler_from_quaternion
-from locobot_custom.srv import GazeboObservationService, GazeboObservationResponse
+from locobot_custom.srv import GazeboObservation
+from locobot_custom.srv import GazeboObservationResponse
 
 class GazeboObservationGenerator:
-    def __init__(self) -> None:
+    def __init__(self, robot_name) -> None:
         # Initialize ROS node
-        rospy.init_node('gazebo_observation_service')
+        rospy.init_node('gazebo_observation')
 
         # Store the name of the robot
-        self.robot_name = "/locobot"
+        self.robot_name = robot_name
 
         # Start the ROS service server
-        self.service = rospy.Service('gazebo_observation', GazeboObservationService, self.handle_gazebo_observation_request)
+        self.service = rospy.Service('GazeboObservation', GazeboObservation, self.handle_gazebo_observation_request)
         rospy.loginfo("Gazebo observation service is ready.")
 
         # Keep the node running
         rospy.spin()
+
+    # def reset_gazebo_world(self):
+    #     # Reset the gazebo world
+    #     rospy.wait_for_service('/gazebo/reset_world')
+    #     try:
+    #         reset_world = rospy.ServiceProxy('/gazebo/reset_world', Empty)
+    #         # call the reset service
+    #         reset_world()
+    #     except rospy.ServiceException as e:
+    #         print("Service call failed:", e)
 
     def handle_gazebo_observation_request(self, req):
         occupancy_grid = self.get_occupancy_grid()

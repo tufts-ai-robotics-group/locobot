@@ -16,7 +16,9 @@ sys.path.append("../knowledge/pddl-parser")
 import numpy as np
 from pddl_parser.PDDL import PDDL_Parser
 
-from locobot_custom.srv import GazeboObservationService
+from locobot_custom.srv import GazeboObservation
+from std_srvs.srv import Empty
+
 
 # from ObservationUtils import GazeboObservationGenerator
 
@@ -41,11 +43,23 @@ class ObservationGenerator:
     #     generate_new_problem_file
     #     return self.parser.problem_file
 
+    def reset(self):
+        try:
+            # Create a service proxy for the reset service
+            reset_world = rospy.ServiceProxy('/gazebo/reset_world', Empty)
+
+            # Call the service
+            reset_world()
+            rospy.loginfo("Gazebo world reset successfully!")
+
+        except rospy.ServiceException as e:
+            rospy.logerr("Service call failed: %s", e)
+
 
     def get_observation(self):
         # Call the gazebo_observation service
         try:
-            gazebo_observation_service = rospy.ServiceProxy('gazebo_observation', GazeboObservationService)
+            gazebo_observation_service = rospy.ServiceProxy('GazeboObservation', GazeboObservation)
             response = gazebo_observation_service()
             
             flattened_occupancy_grid = np.array(response.occupancy_grid)

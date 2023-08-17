@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
+
 import rospy
-from locobot_custom.srv import GazeboObservationService
+from locobot_custom.srv import GazeboObservation
 
 def test_gazebo_observation_service():
     rospy.init_node('test_gazebo_observation_service_client')
-    rospy.wait_for_service('gazebo_observation')
+    rospy.wait_for_service('GazeboObservation')
     
     try:
-        gazebo_observation_service = rospy.ServiceProxy('gazebo_observation', GazeboObservationService)
+        gazebo_observation_service = rospy.ServiceProxy('GazeboObservation', GazeboObservation)
         response = gazebo_observation_service()
         
         print("Occupancy Grid:", response.occupancy_grid)

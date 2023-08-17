@@ -17,9 +17,9 @@ from pddl_parser.planner import Planner
 
 
 class RewardFunction:
-    def __init__(self, env, domain_file, problem_file, failed_action):
+    def __init__(self, domain_file, problem_file, failed_action):
         # Reference to the environment
-        self.env = env
+        # self.env = env
 
         # Parse the domain and problem files
         self.parser = PDDL_Parser()
@@ -124,6 +124,11 @@ class RewardFunction:
         else:
             sys.exit('No plan was found')
         return plan
+    
+    def reset(self):
+        # Reset the state
+        self.parser.reset()
+        self.plan = self.get_plan(self.domain_file, self.problem_file)
 
 # Test case and Example use case of the class
 def main():

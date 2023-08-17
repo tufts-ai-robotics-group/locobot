@@ -74,7 +74,7 @@ class LBMoveIt:
 
         ## Instantiate a `RobotCommander`_ object. This object is the outer-level interface to
         ## the robot:
-        self.robot = moveit_commander.RobotCommander(robot_description="/locobot/robot_description")
+        self.robot = moveit_commander.RobotCommander(robot_description="/locobot/robot_description", ns="locobot")
 
         ## Instantiate a `PlanningSceneInterface`_ object.  This object is an interface
         ## to the world surrounding the robot:
@@ -99,6 +99,9 @@ class LBMoveIt:
 
         # We can also print the name of the end-effector link for this group:
         self.eef_link = self.group.get_end_effector_link()
+        # self.group.get_end_effector_link()
+        # self.eef_link = "gripper_link"
+        # print("self.group._has_end_effector_link(): " + str(self.group._has_end_effector_link()))
         print("============ End effector: %s" % self.eef_link)
 
         # We can get a list of all the groups in the robot:
@@ -107,10 +110,20 @@ class LBMoveIt:
 
         # Sometimes for debugging it is useful to print the entire state of the
         # robot:
-        print("============ Printing robot state")
-        print(self.robot.get_current_state())
-        print("")
 
+        print("============ Printing robot state")
+
+        print(self.robot.get_current_state())
+        print("LBMoveit initialized")
+
+    def go_plan(self, pose: PoseStamped):
+        print ("Current Joint Values in func go_plan: " + str(self.group.get_current_joint_values()))
+        print ("pose: " + str(pose))
+        self.group.set_pose_target(pose, end_effector_link="locobot/gripper_link") # Set target pose
+        error_code, _, planning_time , _ = self.group.plan()
+        print("Planning time: " + str(planning_time))
+        print("Error code: " + str(error_code))
+        return error_code
 
     def go_to_joint_state(self, joint_goal=None):
         ## Planning to a Joint Goal
@@ -128,7 +141,9 @@ class LBMoveIt:
         self.group.stop()
 
         current_joints = self.group.get_current_joint_values()
-        return all_close(joint_goal, current_joints, 0.01)
+        print ("Current Joint Values in func go_to_joint_state: " + str(current_joints))
+        tolerance = 0.01
+        return all_close(joint_goal, current_joints, tolerance)
 
     def go_to_pose_goal(self, pose_goal: Optional[geometry_msgs.msg.Pose]=None):
         ## Planning to a Pose Goal
@@ -137,20 +152,25 @@ class LBMoveIt:
         ## end-effector:
         if pose_goal is None:
             pose_goal = self.pose_goal
+        current_joint_values = self.group.get_current_joint_values()
+        print ("Current Joint Values in func go_to_pose_goal: " + str(current_joint_values))
+        current_pose = self.group.get_current_pose().pose
+        print ("Current Pose in func go_to_pose_goal : " + str(current_pose))
 
         print("============ Printing Pose Goal:\n" + str(pose_goal))
         xyz = [pose_goal.position.x, pose_goal.position.y, pose_goal.position.z]
         print (self.group.get_goal_tolerance())
         # self.group.set_goal_position_tolerance(value=0.01)
-        self.group.set_goal_orientation_tolerance(value=0.01)
-        # print (self.group.get_goal_tolerance())
+        self.group.set_goal_tolerance(value=0.1)
+        # self.group.set_goal_orientation_tolerance(value=0.1)
+        print (self.group.get_goal_tolerance())
         self.group.set_position_target(xyz) # this works
         # self.group.set_pose_target(pose_goal) # this doesnt work
         print("!!!!!!!!!!! Planning NOW !!!!!")
 
         ## Now, we call the planner to compute the plan and execute it.
         start_time = time.time()
-        duration = 5 # Specify the duration in seconds
+        duration = 10 # Specify the duration in seconds
 
         while time.time() - start_time < duration:
             try:
@@ -178,6 +198,7 @@ def handle_grasp(req):
     
     # Move the arm to the desired pose
     success = arm_group.go_to_pose_goal(req.target.pose)
+    # success = arm_group.go_plan(req.target.pose)
 
     if not success:
         return {"success": False, "message": "Failed to move arm to target pose"}

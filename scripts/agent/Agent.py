@@ -26,14 +26,14 @@ class Agent(object):
 
     ######################################### Symbolic Side ###############################################
     def new_problem(self) -> None:
-        self._planner.new_problem()
+        self.planner.new_problem()
 
     def next_action(self) -> str:
-        return self._planner.next_action()
+        return self.planner.next_action()
 
     def verify_preconditions(self, 
                              *args) -> bool:
-        return self._planner.verify_preconditions(args[0], *args[1:])
+        return self.planner.verify_preconditions(args[0], *args[1:])
     
     
     def verify_effects(self,
@@ -69,10 +69,7 @@ class Agent(object):
             status = self.execute_action(*action)
             
             if status != SymStatus.SUCCESS:
-                try:
-                    self.load_and_run_executor(action[0])
-                except:
-                    self.learn_executor()
+                self.learn_executor(action)
             
 
 

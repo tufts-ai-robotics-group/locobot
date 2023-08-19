@@ -32,8 +32,10 @@ class RecycleBotPlanner(Planner):
         def get_hold():
             for obj_type in self.objects.keys():
                 for obj in self.objects[obj_type]:
-                    if (self._predicate_funcs['hold'](obj)):
+                    res = self._predicate_funcs['hold'](obj)
+                    if res.robot_holding_obj == True:
                         return f"(hold {obj})"
+            # return f"(hold nothing)"
 
         robot_1_at = get_at('robot_1')
         can_1_at = get_at('can_1')
@@ -83,7 +85,7 @@ class RecycleBotPlanner(Planner):
 
     def __get_plan(self):
         # Get the plan from the planner
-        plan = self.planner.solve(self._domain_path, join(self._problem_dir, f"{self.problem_prefix}_{str(self._file_counter)}.pddl"))
+        plan = self.planner.solve(self._domain_path, join(self._problem_dir, f"{self.problem_prefix}.pddl"))
         if plan is not None:
             return plan
         else:

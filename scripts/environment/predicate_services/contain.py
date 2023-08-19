@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import rospy
 import numpy as np
 from shapely.geometry import Point
@@ -12,12 +13,15 @@ class RecycleBotGazeboContain(object):
 
         rospy.init_node('RecycleBotGazeboAt', anonymous=True)
 
-        self.contain_srv = rospy.Service('contain', Contain, self.at_callback)
+        self.contain_srv = rospy.Service('contain', Contain, self.contain_callback)
 
         while not rospy.is_shutdown():
             rospy.spin()
 
-    def contain_callback(self, obj, container):
+    def contain_callback(self, req):
+        obj = req.obj
+        container = req.container
+        
         if container != "bin_1":
             return ContainResponse(False)
         
@@ -32,4 +36,6 @@ class RecycleBotGazeboContain(object):
 
         return ContainResponse(np.linalg.norm(position - bin_pos) < bin_rad)
             
-    
+
+if __name__ == "__main__":
+    RecycleBotGazeboContain()

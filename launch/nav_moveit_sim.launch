@@ -10,6 +10,10 @@
     <arg name="localization"                    default="true"/>
     <arg name="use_python_interface"            default="true"/>
 
+    <rosparam file="$(find locobot_custom)/config/at_boundaries.yaml" command="load"/>
+    <rosparam file="$(find locobot_custom)/config/facing_thresh.yaml" command="load"/>
+    <rosparam file="$(find locobot_custom)/config/hold_thresh.yaml" command="load"/>
+
     <include file="$(find interbotix_xslocobot_nav)/launch/xslocobot_nav_sim.launch"> 
         <arg name="robot_model"                 value="locobot_wx200" />
         <arg name="use_lidar"                   value="true" />

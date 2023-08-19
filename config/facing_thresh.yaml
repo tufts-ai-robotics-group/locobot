@@ -1,0 +1,6 @@
+facing_thresh: {
+    doorway_1: 1,
+    can_1: 1,
+    bin_1: 1,
+    ball_1: 1
+}

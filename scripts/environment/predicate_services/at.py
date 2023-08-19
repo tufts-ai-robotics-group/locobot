@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import rospy
 import numpy as np
 from shapely.geometry import Point
@@ -28,12 +29,28 @@ class RecycleBotGazeboAt(object):
             polygon = Polygon(edges)
             self.at_boundaries[boundary_name] = polygon
 
+        self.model_to_pddl_mapping = {
+            "robot_1": "locobot",
+            "can_1": "coke_can_0",
+            "ball_1": "cricket_ball",
+            "bin_1": "bin",
+        }
+
 
         while not rospy.is_shutdown():
             rospy.spin()
 
-    def at_callback(self, room, obj):
+    def at_callback(self, req):
         model_states = rospy.wait_for_message('/gazebo/model_states', ModelStates)
+
+        room = req.room
+        obj = req.obj
+
+        if obj not in self.model_to_pddl_mapping:
+            return AtResponse(False)
+        
+
+        obj = self.model_to_pddl_mapping[obj]
 
         index = model_states.name.index(obj)
         pose = model_states.pose[index]
@@ -49,3 +66,8 @@ class RecycleBotGazeboAt(object):
 
         if at == room:
             return AtResponse(True)
+        
+        return AtResponse(False)
+        
+if __name__ == "__main__":
+    RecycleBotGazeboAt()

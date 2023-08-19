@@ -182,7 +182,8 @@ catkin_install_python(PROGRAMS
   scripts/executor/universal_move_arm.py
   scripts/executor/place_server.py scripts/executor/tests/test_place.py
   scripts/environment/observation_server_gazebo.py scripts/environment/tests/test_observation_gazebo_client.py
-  scripts/environmment/predicates_services/at.py scripts/environmment/predicates_services/contain.py scripts/environmment/predicates_services/facing.py scripts/environmment/predicates_services/hold.py
+  scripts/environment/predicate_services/at.py scripts/environment/predicate_services/contain.py
+  scripts/environment/predicate_services/facing.py scripts/environment/predicate_services/hold.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

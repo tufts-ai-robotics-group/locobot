@@ -1,7 +1,9 @@
 from Agent import Agent
 from planner.Planner import Planner
-from agent.learner.ppo_learner import PPOLearner
-from environment.RecycleBot import RecycleBot
+from ppo_learner import PPOLearner
+import sys
+sys.path.append("/home/bharatkesari/interbotix_ws/src/locobot_custom/scripts/environment")
+from RecycleBot import RecycleBot
 from os.path import join
 
 class RecycleBotAgent(Agent):

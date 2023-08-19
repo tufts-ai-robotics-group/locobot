@@ -2,6 +2,7 @@ import re
 from os import mkdir
 from os.path import exists, join
 from pddl_parser.PDDL import PDDL_Parser
+import inspect
 
 class Planner:
     """
@@ -175,6 +176,8 @@ class Planner:
 
     
     ######################################### Private Functions ###############################################
+    def is_method(self, obj):
+        return inspect.ismethod(obj) or (inspect.isfunction(obj) and hasattr(obj, "__self__"))
 
     def __parse_predicates(self) -> None:
         """
@@ -205,6 +208,9 @@ class Planner:
         for key, input_count in self._predicates.items():
             function = function_dict[key]
             function_input_count = function.__code__.co_argcount
+            if self.is_method(function):
+                function_input_count -= 1
+
             if input_count != function_input_count:
                 raise ValueError(f"Input count mismatch for predicate '{key}'. Expected {input_count} inputs, got {function_input_count}.")
 

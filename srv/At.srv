@@ -1,0 +1,4 @@
+string room
+string obj
+---
+bool obj_at_room 

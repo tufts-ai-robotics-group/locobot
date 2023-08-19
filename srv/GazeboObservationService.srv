@@ -1,7 +1,0 @@
-# GazeboObservation.srv
-
----
-float64[] occupancy_grid
-float64[] relative_locations_x
-float64[] relative_locations_y
-float64[] relative_orientations

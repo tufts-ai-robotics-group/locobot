@@ -13,16 +13,15 @@ from ActionGenerator import ActionSpaceGenerator
 from locobot_custom.srv import Approach, Grasp, Place
 
 class RecycleBot(gym.Env):
-    def __init__(self, knowledge_base):
+    def __init__(self, domain, problem, failed_action):
         super(RecycleBot, self).__init__()
-        print ("knowledge_base.domain_file: ", knowledge_base.domain_file)
-        print ("knowledge_base.problem_file: ", knowledge_base.problem_file)
-        print ("knowledge_base.failed_action: ", knowledge_base.failed_action)
+        # print ("knowledge_base.domain_file: ", knowledge_base.domain_file)
+        # print ("knowledge_base.problem_file: ", knowledge_base.problem_file)
+        # print ("knowledge_base.failed_action: ", knowledge_base.failed_action)
 
-
-        self.observation_generator = ObservationGenerator(knowledge_base.domain_file, knowledge_base.problem_file)
-        self.reward_function_generator = RewardFunction(knowledge_base.domain_file, knowledge_base.problem_file, knowledge_base.failed_action)
-        self.action_space_generator = ActionSpaceGenerator(knowledge_base.domain_file, knowledge_base.problem_file)
+        self.observation_generator = ObservationGenerator(domain, problem)
+        self.reward_function_generator = RewardFunction(domain, problem, failed_action)
+        self.action_space_generator = ActionSpaceGenerator(domain, problem)
         
         # Create a mapping from actions to integers
         self.action_mapping = {i: action for i, action in enumerate(self.action_space_generator.generate_grounded_actions())}

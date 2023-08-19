@@ -361,7 +361,7 @@ class Planner:
 
         """
         self.plan_str = self.generate_plan_str()
-        plan_path = join(self.plan_file_directory, f"{self.problem_prefix}_{str(self._file_counter)}")
+        plan_path = join(self.plan_file_directory, f"{self.problem_prefix}_plan.pddl")
         
         # Open and write to problem file
         try:
@@ -371,8 +371,6 @@ class Planner:
         except IOError:
             raise Exception("Error opening/writing to plan file.")
         
-        self._file_counter += 1
-
     def __del__(self) -> None:
         """
         Destructor method to clean up resources.

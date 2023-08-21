@@ -39,15 +39,21 @@ class Agent(object):
     def verify_effects(self,
                        *args) -> SymStatus:
         
-        if not self.__verify_preconditions(args[0], *args[1:]):
+        self.planner.verify_effects(args[0], *args[1:])
+        
+    def execute_action(self,
+                       *args):
+        if not self.verify_preconditions(args[0], *args[1:]):
             return SymStatus.PRECONDITION_FAILURE
 
-        self.sym_actions[args[0]](*args[1:])
+        self._sym_actions[args[0]](*args[1:])
 
-        if not self.__verify_effects(args[0], *args[1:]):
+        if not self.verify_effects(args[0], *args[1:]):
             return SymStatus.EFFECT_FAILURE
         
         return SymStatus.SUCCESS
+    
+
 
     
     ######################################### Subsymbolic Side ###############################################

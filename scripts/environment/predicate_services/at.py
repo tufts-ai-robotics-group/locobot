@@ -33,7 +33,7 @@ class RecycleBotGazeboAt(object):
         self.model_to_pddl_mapping = {
             "robot_1": "locobot",
             "can_1": "coke_can_0",
-            "ball_1": "cricket_ball",
+            "ball_1": "cricket_ball_smaller",
             "bin_1": "bin",
         }
 

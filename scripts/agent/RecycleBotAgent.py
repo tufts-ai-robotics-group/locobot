@@ -17,14 +17,15 @@ class RecycleBotAgent(Agent):
                        action: str):
         problem_file = join(self.planner.problem_dir, f"{self.planner.problem_prefix}.pddl")
         self.new_problem()
-        env = RecycleBot(self.planner.domain_path, self.planner.problem_path, action)
+        # env = RecycleBot(self.planner.domain_path, self.planner.problem_path, action)
+        env = RecycleBot(self.planner.domain_path, problem_file, action)
         learner = PPOLearner(
             obs_space=env.observation_space,
             act_space=env.action_space,
             hidden_sizes=[256]
         )
 
-        env.reset(seed=0)
+        env.reset()
 
         for epi in range(self._num_eps):
             observation, info = env.reset()

@@ -67,6 +67,7 @@ class ObservationGenerator:
             relative_orientations = np.array(response.relative_orientations)
 
             observation = np.concatenate([flattened_occupancy_grid, relative_locations, relative_orientations, self.get_predicates_vectors()])
+            # print ("observation = {}".format(observation))
             return observation
 
         except rospy.ServiceException as e:

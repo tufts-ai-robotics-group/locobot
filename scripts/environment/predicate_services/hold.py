@@ -24,7 +24,7 @@ class RecycleBotGazeboHold(object):
         
         self.model_to_pddl_mapping = {
             "can_1": "coke_can_0",
-            "ball_1": "cricket_ball",
+            "ball_1": "cricket_ball_smaller",
         }
 
         while not rospy.is_shutdown():

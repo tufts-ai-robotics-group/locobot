@@ -41,7 +41,8 @@ class RecycleBot(gym.Env):
         self.observation_generator.reset()
         # self.reward_function_generator.reset()
         # self.action_space_generator.reset()
-        return self.observation_generator.get_observation()
+        # print ("self.observation_generator.get_observation(): ", self.observation_generator.get_observation())
+        return self.observation_generator.get_observation(), {}
 
     def execute_action(self, action):   
         print ("action: ", action)
@@ -49,16 +50,20 @@ class RecycleBot(gym.Env):
         print ("action_name: ", action_name)
         # this is hardcoded for now.
         action_type = action_name.split(" ")[0]
-        target = action_name.split(" ")[1]
+        target = action_name.split(" ")[1] # in our case, the target of the action is the first parameter of the action.
         # Assuming actions like "approach <object>", "grasp <object>", etc.
         # action_type, target = action_name.split(" ")
+        success = False
+        info = ""
 
         if action_type == "approach":
-            success, info = self.call_service('execute_approach', target, Approach)
+            success, info = self.call_service('approach', target, Approach)
         elif action_type == "grasp":
-            success, info = self.call_service('execute_grasp', target, Grasp)
+            success, info = self.call_service('grasp', target, Grasp)
         elif action_type == "place":
-            success, info = self.call_service('execute_place', target, Place)
+            success, info = self.call_service('place', target, Place)
+        elif action_type == "pass_through_door": # Hack currently to handle special case of approach. The agent should essentially approach the doorway on the other side of the room. 
+            success, info = self.call_service('approach', "doorway_1_blue", Approach)
 
         return success, info
 

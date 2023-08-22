@@ -18,15 +18,38 @@ class RecycleBotPlanner(Planner):
     def generate_problem_str(self) -> str:
 
         def get_at(obj: str):
+            print ("objects = {}".format(self.objects))
             for room in self.objects['room']:
-                if (self._predicate_funcs['at'](room, obj)):
+                print ("room = {}".format(room))
+                pred_result = self._predicate_funcs['at'](room, obj)
+                print(f"Predicate result for {room} and {obj}: {pred_result}")
+                if pred_result:
                     return f"(at {room} {obj})"
 
+                
         def get_facing():
+            # First check if the robot is facing 'nothing'
+            if self._predicate_funcs['facing']('nothing'):
+                return "(facing nothing)"
+            
+            # If the robot is not facing 'nothing', check the other objects
             for obj_type in self.objects.keys():
                 for obj in self.objects[obj_type]:
-                    if (self._predicate_funcs['facing'](obj)):
+                    if obj != 'nothing' and self._predicate_funcs['facing'](obj):
                         return f"(facing {obj})"
+            return None  # for safety and sanity, it will never reach here
+
+
+       # this is buggy
+        # def get_facing():
+        #     for obj_type in self.objects.keys():
+        #         print (self.objects[obj_type])
+        #         print (self.objects.keys())
+        #         for obj in self.objects[obj_type]:
+        #             print (obj)
+        #             if (self._predicate_funcs['facing'](obj)):
+        #                 print (f"(facing {obj})")
+        #                 return f"(facing {obj})"
                 
         
         def get_hold():
@@ -35,7 +58,7 @@ class RecycleBotPlanner(Planner):
                     res = self._predicate_funcs['hold'](obj)
                     if res.robot_holding_obj == True:
                         return f"(hold {obj})"
-            # return f"(hold nothing)"
+            return f"(hold nothing)"
 
         robot_1_at = get_at('robot_1')
         can_1_at = get_at('can_1')

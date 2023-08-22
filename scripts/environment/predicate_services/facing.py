@@ -2,18 +2,16 @@
 
 import rospy
 import numpy as np
-
 from locobot_custom.srv import Facing, FacingResponse
 from gazebo_msgs.msg import ModelStates
+from tf.transformations import euler_from_quaternion
 
 class RecycleBotGazeboFacing(object):
 
     def __init__(self):
-
         rospy.init_node('RecycleBotGazeboFacing', anonymous=True)
-
         self.at_srv = rospy.Service('facing', Facing, self.facing_callback)
-
+        
         try:
             self.param_facing_thresh = rospy.get_param("facing_thresh")
         except (KeyError, rospy.ROSException):
@@ -32,45 +30,71 @@ class RecycleBotGazeboFacing(object):
 
     def facing_callback(self, req):
         obj = req.obj
-
-        position = []
-
+        rospy.loginfo(f"Received request to check if robot is facing {obj}.")
         model_states = rospy.wait_for_message('/gazebo/model_states', ModelStates)
-
+        # rospy.loginfo(f"Model states: {model_states}")
+    
         robot_index = model_states.name.index("locobot")
         robot_pose = model_states.pose[robot_index]
         robot_position = np.array([robot_pose.position.x, robot_pose.position.y])
         robot_orientation = np.array([robot_pose.orientation.x, robot_pose.orientation.y, robot_pose.orientation.z, robot_pose.orientation.w])
 
         if obj == "nothing":
-            for key, _ in self.model_to_pddl_mapping.items():
-                if self.facing_callback(key):
-                    return FacingResponse(False)
-            return FacingResponse(True)
-
-        elif obj == "doorway_1":
-            position = np.array([0, 0])
-        elif obj in self.model_to_pddl_mapping:
-            obj = self.model_to_pddl_mapping[obj]
-            index = model_states.name.index(obj)
-            pose = model_states.pose[index]
-            position = np.array([pose.position.x, pose.position.y])
+            # Check if the robot is facing any of the objects
+            for key in self.model_to_pddl_mapping:
+                if self.is_facing_object(key, robot_position, robot_orientation, model_states):
+                    rospy.loginfo(f"Robot is facing: {key}")
+                    return FacingResponse(False)  # Robot is facing an object, so not "nothing"
+            return FacingResponse(True)  # Robot is not facing any objects, so "nothing"
         else:
-            return FacingResponse(False)
-        
-        # Get the angle between the robot and the object if the angle is less than 0.25 radians and 
-        # the object is within the param_facing_thresh distance of the robot, then set facing to true
+            rospy.loginfo(f"Robot is facing: {obj}")
+            # Check if the robot is facing the specified object
+            return FacingResponse(self.is_facing_object(obj, robot_position, robot_orientation, model_states))
 
-        facing = False 
-        if np.linalg.norm(position - robot_position) < self.param_facing_thresh[req.obj]:
-            robot_orientation = robot_orientation / np.linalg.norm(robot_orientation)
-            object_orientation = np.array([pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w])
-            object_orientation = object_orientation / np.linalg.norm(object_orientation)
-            angle = np.arccos(np.dot(robot_orientation, object_orientation))
-            if angle < 0.25:
-                facing = True
+    def is_facing_object(self, obj_name, robot_position, robot_orientation, model_states):
+        if obj_name == "doorway_1":
+            rospy.loginfo("Robot is facing doorway_1??")
+            object_position = np.array([0, 0])
+        elif obj_name in self.model_to_pddl_mapping:
+            mapped_name = self.model_to_pddl_mapping[obj_name]
+            if mapped_name not in model_states.name:
+                rospy.logerr(f"Object {obj_name} not found in model states.")
+                return False
+            index = model_states.name.index(mapped_name)
+            pose = model_states.pose[index]
+            object_position = np.array([pose.position.x, pose.position.y])
+        else:
+            return False
 
-        return FacingResponse(facing)
+        direction_to_object = object_position - robot_position
+        direction_to_object /= np.linalg.norm(direction_to_object)
+        _, _, yaw = euler_from_quaternion(robot_orientation)
+        robot_facing_dir = np.array([np.cos(yaw), np.sin(yaw)])
+
+        # angle = np.arccos(np.dot(robot_facing_dir, direction_to_object))
+        # distance = np.linalg.norm(object_position - robot_position)
+        # rospy.loginfo(f"Angle: {angle}, Distance: {distance}")
+        # rospy.loginfo(f"Threshold: {self.param_facing_thresh[obj_name]}")
+
+
+        # return angle < 0.25 and distance < self.param_facing_thresh[obj_name]
+    
+
+        angle = np.arccos(np.dot(robot_facing_dir, direction_to_object))
+        distance = np.linalg.norm(object_position - robot_position)
+
+        rospy.loginfo(f"Angle: {angle}, Distance: {distance}")
+        rospy.loginfo(f"Threshold: {self.param_facing_thresh[obj_name]}")
+        print(f"Angle Condition: {angle < 0.25 or abs(angle - np.pi) < 0.25}")
+        print(f"Distance Condition: {distance < self.param_facing_thresh[obj_name]}")
+
+
+        if (angle < 0.25 or abs(angle - np.pi) < 0.25) and distance < self.param_facing_thresh[obj_name]:
+            rospy.loginfo(f"Robot is facing {obj_name}.")
+            return True
+        else:
+            rospy.loginfo(f"Robot is not facing {obj_name}.")
+            return False
 
 if __name__ == "__main__":
     RecycleBotGazeboFacing()

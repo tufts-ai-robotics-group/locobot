@@ -31,38 +31,37 @@ class RecycleBotGazeboHold(object):
             rospy.spin()
 
     def hold_callback(self, req):
+        result = self.process_obj(req.obj)
+        return HoldResponse(result)
 
-        print(req)
-        print(req.obj)
-        obj = req.obj
+    def process_obj(self, obj_name):
+        rospy.loginfo(f"Received request to check if robot is holding {obj_name}.")
+        if obj_name not in self.model_to_pddl_mapping:
+            rospy.logwarn(f"Object {obj_name} not defined in the mapping.")
+            return False
 
-        if obj in self.model_to_pddl_mapping:
-            obj = self.model_to_pddl_mapping[obj]
-        elif obj != "nothing":
-            return HoldResponse(False)
-
+        mapped_obj_name = self.model_to_pddl_mapping[obj_name]
         model_states = rospy.wait_for_message('/gazebo/model_states', ModelStates)
-        # Write ros code to get the transform of the locobot/odom frame to the locobot/gripper_link frame
+
         listener = tf.TransformListener()
         listener.waitForTransform("/locobot/odom", "/locobot/gripper_link", rospy.Time(), rospy.Duration(4.0))
         (trans, rot) = listener.lookupTransform("/locobot/odom", "/locobot/gripper_link", rospy.Time(0))
         euler = euler_from_quaternion(rot)
 
-        if obj != "nothing":
-            index = model_states.name.index(obj)
-            pose = model_states.pose[index]
-            position = np.array([pose.position.x, pose.position.y, pose.position.z]) 
+        if mapped_obj_name not in model_states.name:
+            rospy.logwarn(f"{mapped_obj_name} not found in gazebo model states.")
+            return False
 
-            hold = "nothing"
-            for holdable, threshold in self.hold_thresholds.items():
-                if np.linalg.norm(position - trans) < threshold:
-                    hold = holdable
-        else:
-            for key, _ in self.model_to_pddl_mapping.items():
-                if self.hold_callback(key):
-                    return HoldResponse(False)
+        index = model_states.name.index(mapped_obj_name)
+        pose = model_states.pose[index]
+        position = np.array([pose.position.x, pose.position.y, pose.position.z]) 
 
-        return HoldResponse(hold == obj)
+        hold = "nothing"
+        for holdable, threshold in self.hold_thresholds.items():
+            if np.linalg.norm(position - trans) < threshold:
+                hold = holdable
+
+        return hold == mapped_obj_name
     
 if __name__ == "__main__":
     RecycleBotGazeboHold()

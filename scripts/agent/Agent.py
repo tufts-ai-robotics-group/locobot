@@ -72,7 +72,9 @@ class Agent(object):
 
         # Loop through actions in plan 
         while action := self.next_action():
+            print ("action: ", *action)
             status = self.execute_action(*action)
+            print ("status: ", status)
             
             if status != SymStatus.SUCCESS:
                 self.learn_executor(action)

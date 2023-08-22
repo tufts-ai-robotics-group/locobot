@@ -36,6 +36,12 @@ executor_dir = "/home/bharatkesari/interbotix_ws/src/locobot_custom/scripts/know
 
 
 planner = RecycleBotPlanner(domain_path, problem_dir, "recycle_bot_problem", predicates_dict, obj)
+print (planner.generate_plan_str())
+
+# Now the planner has planned. We need to execute the plan.
+# and if during execution if any action fails, we need to learn the executor for that action.
+
+
 agent = RecycleBotAgent(planner, sym_actions_dict, executor_dir, 100)
 
 

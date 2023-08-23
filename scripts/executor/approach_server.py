@@ -4,6 +4,8 @@ import rospy
 import math
 from locobot_custom.srv import Approach
 from geometry_msgs.msg import PoseStamped, Point, Quaternion
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from actionlib.simple_action_client import SimpleActionClient
 
 # This will be populated from the ROS parameter server
 GOAL_LOCATIONS = {}
@@ -25,10 +27,8 @@ def sanitize_quaternion_for_2d_navigation(orientation):
     q_z = orientation.z
     q_w = orientation.w
     
-    # Computing yaw angle from the quaternion
     yaw = math.atan2(2.0 * (q_w * q_z + q_x * q_y), 1.0 - 2.0 * (q_y * q_y + q_z * q_z))
     
-    # Generating a valid quaternion for 2D navigation from the yaw angle
     orientation.w = math.cos(yaw / 2.0)
     orientation.z = math.sin(yaw / 2.0)
     orientation.x = 0.0
@@ -37,20 +37,29 @@ def sanitize_quaternion_for_2d_navigation(orientation):
     return orientation
 
 def send_goal(goal_name: str):
-    goal_pub = rospy.Publisher('/locobot/move_base_simple/goal', PoseStamped, queue_size=10)
-    rospy.sleep(1)  # Allow time for publishers to initialize
+    client = SimpleActionClient('/locobot/move_base', MoveBaseAction)
+    client.wait_for_server()
+
     pose_dict = GOAL_LOCATIONS[goal_name]
     rospy.loginfo("Sending goal: %s", pose_dict)
 
-    goal = PoseStamped()
-    goal.header.frame_id = 'map' # This is the default frame for the navigation stack
-    goal.pose.position = Point(**pose_dict['position'])
-    goal.pose.orientation = sanitize_quaternion_for_2d_navigation(Quaternion(**pose_dict['orientation']))
-    rospy.loginfo("Sanitized goal: %s", goal)
-    goal_pub.publish(goal)
-    rospy.loginfo("Goal sent!")
-
-    return True, "Goal sent!"
+    goal = MoveBaseGoal()
+    goal.target_pose.header.frame_id = 'map'
+    goal.target_pose.pose.position = Point(**pose_dict['position'])
+    goal.target_pose.pose.orientation = sanitize_quaternion_for_2d_navigation(Quaternion(**pose_dict['orientation']))
+    
+    client.send_goal(goal)
+    
+    # Wait for the result
+    client.wait_for_result(timeout=rospy.Duration(120))
+    
+    state = client.get_state()
+    if state == 3:  # SUCCEEDED
+        rospy.loginfo("Goal reached!")
+        return True, "Goal reached!"
+    else:
+        rospy.logerr("Failed to reach goal!")
+        return False, "Failed to reach goal!"
 
 def handle_approach(req):
     rospy.loginfo("Executing approach action towards %s", req.target)

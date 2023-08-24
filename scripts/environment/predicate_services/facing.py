@@ -26,7 +26,7 @@ class RecycleBotGazeboFacing(object):
         # Define a mapping between model names and their corresponding PDDL names
         self.model_to_pddl_mapping = {
             "can_1": "coke_can_0",
-            "ball_1": "cricket_ball_smaller",
+            "ball_1": "ball",
             "bin_1": "bin",
             "doorway_1": "doorway_1"
         }

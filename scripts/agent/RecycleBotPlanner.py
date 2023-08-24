@@ -16,49 +16,75 @@ class RecycleBotPlanner(Planner):
         self.planner = PDDL_Planner()
     
     def generate_problem_str(self) -> str:
-
+        
         def get_at(obj: str):
-            print ("objects = {}".format(self.objects))
+            # print("I am in the get_at function")
             for room in self.objects['room']:
-                print ("room = {}".format(room))
                 pred_result = self._predicate_funcs['at'](room, obj)
-                print(f"Predicate result for {room} and {obj}: {pred_result}")
-                if pred_result:
+                # print the type of the pred_result
+                # print (f"type(pred_result) = {type(pred_result.obj_at_room)}")
+                if pred_result.obj_at_room: # we need to call the name of the variable to return a boolean based on the service definition
+                    # print(f"I am returning the following string: (at {room} {obj})")
                     return f"(at {room} {obj})"
+            print(f"No room found for object: {obj}. Not returning any string.")
 
-                
         def get_facing():
             # First check if the robot is facing 'nothing'
-            if self._predicate_funcs['facing']('nothing'):
+            response = self._predicate_funcs['facing']('nothing')
+            if response.robot_facing_obj:
                 return "(facing nothing)"
             
             # If the robot is not facing 'nothing', check the other objects
             for obj_type in self.objects.keys():
                 for obj in self.objects[obj_type]:
-                    if obj != 'nothing' and self._predicate_funcs['facing'](obj):
-                        return f"(facing {obj})"
+                    if obj != 'nothing':
+                        response = self._predicate_funcs['facing'](obj)
+                        if response.robot_facing_obj:
+                            return f"(facing {obj})"
             return None  # for safety and sanity, it will never reach here
 
-
-       # this is buggy
-        # def get_facing():
-        #     for obj_type in self.objects.keys():
-        #         print (self.objects[obj_type])
-        #         print (self.objects.keys())
-        #         for obj in self.objects[obj_type]:
-        #             print (obj)
-        #             if (self._predicate_funcs['facing'](obj)):
-        #                 print (f"(facing {obj})")
-        #                 return f"(facing {obj})"
-                
-        
         def get_hold():
             for obj_type in self.objects.keys():
                 for obj in self.objects[obj_type]:
-                    res = self._predicate_funcs['hold'](obj)
-                    if res.robot_holding_obj == True:
+                    response = self._predicate_funcs['hold'](obj)
+                    if response.robot_holding_obj:
                         return f"(hold {obj})"
-            return f"(hold nothing)"
+            return "(hold nothing)"
+
+
+                
+    #     def get_facing():
+    #         # First check if the robot is facing 'nothing'
+    #         if self._predicate_funcs['facing']('nothing'):
+    #             return "(facing nothing)"
+            
+    #         # If the robot is not facing 'nothing', check the other objects
+    #         for obj_type in self.objects.keys():
+    #             for obj in self.objects[obj_type]:
+    #                 if obj != 'nothing' and self._predicate_funcs['facing'](obj):
+    #                     return f"(facing {obj})"
+    #         return None  # for safety and sanity, it will never reach here
+
+
+    #    # this is buggy
+    #     # def get_facing():
+    #     #     for obj_type in self.objects.keys():
+    #     #         print (self.objects[obj_type])
+    #     #         print (self.objects.keys())
+    #     #         for obj in self.objects[obj_type]:
+    #     #             print (obj)
+    #     #             if (self._predicate_funcs['facing'](obj)):
+    #     #                 print (f"(facing {obj})")
+    #     #                 return f"(facing {obj})"
+                
+        
+    #     def get_hold():
+    #         for obj_type in self.objects.keys():
+    #             for obj in self.objects[obj_type]:
+    #                 res = self._predicate_funcs['hold'](obj)
+    #                 if res.robot_holding_obj == True:
+    #                     return f"(hold {obj})"
+    #         return f"(hold nothing)"
 
         robot_1_at = get_at('robot_1')
         can_1_at = get_at('can_1')

@@ -51,9 +51,21 @@ class ObservationGenerator:
             # Call the service
             reset_world()
             rospy.loginfo("Gazebo world reset successfully!")
-
+            self.clear_costmaps()
+            rospy.loginfo("Costmaps cleared successfully!")
         except rospy.ServiceException as e:
             rospy.logerr("Service call failed: %s", e)
+
+
+    def clear_costmaps(self):
+        try:
+            # Assuming you're using move_base and the default service names
+            clear_costmaps_service_name = "/locobot/move_base/clear_costmaps"
+            rospy.wait_for_service(clear_costmaps_service_name, timeout=5)
+            clear_costmaps = rospy.ServiceProxy(clear_costmaps_service_name, Empty)
+            clear_costmaps()
+        except rospy.ServiceException as e:
+            print(f"Service call failed: {e}")
 
 
     def get_observation(self):

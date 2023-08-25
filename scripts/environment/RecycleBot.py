@@ -8,7 +8,6 @@ from gym import spaces
 from ObservationGenerator import ObservationGenerator
 from RewardFunction import RewardFunction
 from ActionGenerator import ActionSpaceGenerator
-# from RewardFunctionGenerator import RewardFunctionGenerator
 
 # ROS related modules
 from locobot_custom.srv import Approach, Grasp, Place
@@ -17,9 +16,6 @@ from locobot_custom.srv import Approach, Grasp, Place
 class RecycleBot(gym.Env):
     def __init__(self, domain, problem, failed_action, planner, sym_actions_dict, executor_dir, num_eps=100):
         super(RecycleBot, self).__init__()
-        # print ("knowledge_base.domain_file: ", knowledge_base.domain_file)
-        # print ("knowledge_base.problem_file: ", knowledge_base.problem_file)
-        # print ("knowledge_base.failed_action: ", knowledge_base.failed_action)
 
         self.observation_generator = ObservationGenerator(domain, problem)
         self.reward_function_generator = RewardFunction(domain, problem, failed_action)
@@ -36,6 +32,7 @@ class RecycleBot(gym.Env):
         self._sym_actions_dict = sym_actions_dict
         self._executor_dir = executor_dir
         self._num_eps = num_eps
+        self.problem_file_path = problem
 
         from RecycleBotAgent import RecycleBotAgent
         self.agent = RecycleBotAgent(self._planner, self._sym_actions_dict, self._executor_dir, self._num_eps)
@@ -54,9 +51,9 @@ class RecycleBot(gym.Env):
         # Call new_problem() of the agent after getting new observation
         self.agent.new_problem()
         # print ("observation after taking a step in the world: ", observation)
-        reward, done = self.reward_function_generator.get_reward(success, action)
+        reward, terminated, truncated = self.reward_function_generator.get_reward(success, executed_info, problem_file=self.problem_file_path)
         info = executed_info
-        return (observation, reward, done, info)
+        return (observation, reward, terminated, truncated, info)
 
     def reset(self):
         self.observation_generator.reset()

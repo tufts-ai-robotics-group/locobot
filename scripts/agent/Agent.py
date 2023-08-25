@@ -70,6 +70,7 @@ class Agent(object):
         # Initialize problem
         self.new_problem()
 
+        # print ("\n\n New Problem \n\n")
         # Loop through actions in plan 
         while action := self.next_action():
             print ("action: ", *action)

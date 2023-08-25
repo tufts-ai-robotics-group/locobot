@@ -66,7 +66,7 @@ def handle_approach(req):
 
     success, info = send_goal(req.target)
 
-    return {"success": success, "message": info}
+    return success, info
 
 if __name__ == "__main__":
     initialize_ros_node()

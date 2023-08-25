@@ -8,12 +8,14 @@ from gym import spaces
 from ObservationGenerator import ObservationGenerator
 from RewardFunction import RewardFunction
 from ActionGenerator import ActionSpaceGenerator
+# from RewardFunctionGenerator import RewardFunctionGenerator
 
 # ROS related modules
 from locobot_custom.srv import Approach, Grasp, Place
 
+
 class RecycleBot(gym.Env):
-    def __init__(self, domain, problem, failed_action):
+    def __init__(self, domain, problem, failed_action, planner, sym_actions_dict, executor_dir, num_eps=100):
         super(RecycleBot, self).__init__()
         # print ("knowledge_base.domain_file: ", knowledge_base.domain_file)
         # print ("knowledge_base.problem_file: ", knowledge_base.problem_file)
@@ -28,13 +30,32 @@ class RecycleBot(gym.Env):
         print ("self.action_mapping: ", self.action_mapping)
 
         self.action_space = spaces.Discrete(len(self.action_space_generator.grounded_actions))
+
+        # Initialize RecycleBotAgent
+        self._planner = planner
+        self._sym_actions_dict = sym_actions_dict
+        self._executor_dir = executor_dir
+        self._num_eps = num_eps
+
+        from RecycleBotAgent import RecycleBotAgent
+        self.agent = RecycleBotAgent(self._planner, self._sym_actions_dict, self._executor_dir, self._num_eps)
         self.observation_space = spaces.Box(low=-10, high=10, shape=(self.observation_generator.get_observation_space_size(),))
 
     def step(self, action):
-        executed_info = self.execute_action(action)
+        # TODO:
+        # we need to verify if the action is valid or not.
+        # by checking the pre conditions  # and then execute the action.
+
+        success, executed_info = self.execute_action(action)
+        # print ("success: ", success)
+        # print ("executed_info: ", executed_info)
+
         observation = self.observation_generator.get_observation()
-        reward, done = self.reward_function_generator.get_reward(executed_info, action)
-        info = {}
+        # Call new_problem() of the agent after getting new observation
+        self.agent.new_problem()
+        # print ("observation after taking a step in the world: ", observation)
+        reward, done = self.reward_function_generator.get_reward(success, action)
+        info = executed_info
         return (observation, reward, done, info)
 
     def reset(self):

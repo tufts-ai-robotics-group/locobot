@@ -18,7 +18,7 @@ class RecyleBotPDDLActions(object):
         # rospy.wait_for_service('place')
         # self._place = rospy.ServiceProxy('place' , Place)
 
-    def approach(self, object1, room1):
+    def approach(self, object1, room1, object2):
         self._approach(object1)
         
     def pass_through_door(self, room1, room2, doorway1):

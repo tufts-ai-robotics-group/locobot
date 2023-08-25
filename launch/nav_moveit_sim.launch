@@ -13,6 +13,7 @@
     <rosparam file="$(find locobot_custom)/config/at_boundaries.yaml" command="load"/>
     <rosparam file="$(find locobot_custom)/config/facing_thresh.yaml" command="load"/>
     <rosparam file="$(find locobot_custom)/config/hold_thresh.yaml" command="load"/>
+    <rosparam file="$(find locobot_custom)/config/sim_nav_goals.yaml" command="load"/>
 
     <include file="$(find interbotix_xslocobot_nav)/launch/xslocobot_nav_sim.launch"> 
         <arg name="robot_model"                 value="locobot_wx200" />
@@ -33,6 +34,20 @@
         <arg name="publish_monitored_planning_scene"  value="true" />
     </include>
 
+    <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find rviz_config)/Default.rviz"/>
+    <arg name="rviz_command_args" value="-d $(find locobot_custom)/rviz/locobot_moveit_base_compact.rviz" />
+    <node name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false"
+        args="$(arg rviz_command_args)" output="screen">
+    </node>  -->
+
+        <!-- 
+        rviz 
+    -->
+    <!-- <arg name="rviz_command_args" value="-d $(find locobot_custom)/rviz/locobot_move_base+move_it_compact.rviz" />
+    <node name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false"
+        args="$(arg rviz_command_args)" output="screen">
+        <rosparam command="load" file="$(find interbotix_xslocobot_moveit)/config/kinematics.yaml"/>
+    </node> -->
 
     <!-- 
         rviz 
@@ -55,5 +70,20 @@
         <remap from="/attached_collision_object"      to="/$(arg robot_name)/attached_collision_object"/>
         <remap from="/collision_object"               to="/$(arg robot_name)/collision_object"/>
     </node>
+
+    <!-- Services -->
+
+    <!-- Predicate Services -->
+    <node name="at" pkg="locobot_custom" type="at.py" output="screen" />
+    <node name="facing" pkg="locobot_custom" type="facing.py" output="screen" />
+    <node name="hold" pkg="locobot_custom" type="hold.py" output="screen" />
+    <node name="contain" pkg="locobot_custom" type="contain.py" output="screen" />
+    
+    <!-- Action Execution Services -->
+    <node name="approach_server" pkg="locobot_custom" type="approach_server.py" output="screen" />
+    <node name="grasp_server" pkg="locobot_custom" type="grasp_server.py" output="screen" />
+    
+    <!-- MDP Services -->
+    <node name="observation_server_gazebo" pkg="locobot_custom" type="observation_server_gazebo.py" output="screen" />
 
 </launch>

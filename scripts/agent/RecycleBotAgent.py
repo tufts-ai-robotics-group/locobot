@@ -16,9 +16,9 @@ class RecycleBotAgent(Agent):
     def learn_executor(self,
                        action: str):
         problem_file = join(self.planner.problem_dir, f"{self.planner.problem_prefix}.pddl")
-        self.new_problem()
+        self.new_problem() # generate a new problem file
         # env = RecycleBot(self.planner.domain_path, self.planner.problem_path, action)
-        env = RecycleBot(self.planner.domain_path, problem_file, action)
+        env = RecycleBot(self.planner.domain_path, problem_file, action, self.planner, self._sym_actions, self._executor_path)
         learner = PPOLearner(
             obs_space=env.observation_space,
             act_space=env.action_space,
@@ -35,6 +35,8 @@ class RecycleBotAgent(Agent):
             total_return = 0
 
             while not terminated and not truncated:
+                # print ("observation: ", observation)
+                # print ("observation.shape while doing the forward pass: {} ".format(observation.shape))
                 act = learner.get_action(observation)
                 prev_obs = observation
                 observation, reward, terminated, truncated, info = env.step(act)

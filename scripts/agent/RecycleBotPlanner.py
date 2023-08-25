@@ -18,13 +18,9 @@ class RecycleBotPlanner(Planner):
     def generate_problem_str(self) -> str:
         
         def get_at(obj: str):
-            # print("I am in the get_at function")
             for room in self.objects['room']:
                 pred_result = self._predicate_funcs['at'](room, obj)
-                # print the type of the pred_result
-                # print (f"type(pred_result) = {type(pred_result.obj_at_room)}")
                 if pred_result.obj_at_room: # we need to call the name of the variable to return a boolean based on the service definition
-                    # print(f"I am returning the following string: (at {room} {obj})")
                     return f"(at {room} {obj})"
             print(f"No room found for object: {obj}. Not returning any string.")
 

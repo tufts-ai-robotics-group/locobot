@@ -126,8 +126,14 @@ class Planner:
             bool: If the preconditions are satisfied.
         """
         for pred in self._preconditions[action]:
+            # print ("pred: ", pred)
+            # print ("pred['func']: ", pred['func'])
+            # print ("_preconditions: ", self._preconditions)
             if not pred['func'](pred['name'], pred['arg_indecies'], pred['consts'], *args):
+                # print(f"Failing predicate {pred['name']}")
                 return False
+        
+        return True
     
     def verify_effects(self, 
                        action: str, 
@@ -146,7 +152,8 @@ class Planner:
             if not pred['func'](pred['name'], pred['arg_indecies'], pred['consts'], *args):
                 return False
         
-    
+        return True
+
     def new_problem(self):
         """
         Constructs a new problem and plan at the current state.

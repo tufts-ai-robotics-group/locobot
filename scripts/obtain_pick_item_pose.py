@@ -2,7 +2,6 @@
 ##################################################################
 # obtain_obj_loc.py
 # 
-# by GPT
 #
 # listens to the model states topic and gives the location of the desired object
 # and the pick up pose for the robot arm in the cartesian coordinates frame.
@@ -86,12 +85,11 @@ class PickUpPoseCalculator:
             except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
                 rate.sleep()
 
-
 def debug():
     pub = rospy.Publisher("/locobot/estimated_pickup_pose", PoseStamped, queue_size=10)
     pub_object = rospy.Publisher("/debug/obj_loc", PoseStamped, queue_size=10)
     rospy.init_node("pose_listener")
-    ball_pose_calculator = PickUpPoseCalculator("cricket_ball")
+    ball_pose_calculator = PickUpPoseCalculator("ball")
     rate = rospy.Rate(10)
 
     while not rospy.is_shutdown():
@@ -104,7 +102,6 @@ def debug():
         pub.publish(ball_pose_calculator.locobot_to_world(pose))
         pub_object.publish(ball_pose_calculator.object_pose)
         rate.sleep()
-
 
 if __name__ == "__main__":
     debug()

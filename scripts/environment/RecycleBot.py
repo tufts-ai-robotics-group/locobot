@@ -1,5 +1,6 @@
 import rospy
 # from NovelGym import NovelGym
+from geometry_msgs.msg import PoseStamped
 
 import gym
 from gym import spaces
@@ -10,7 +11,7 @@ from RewardFunction import RewardFunction
 from ActionGenerator import ActionSpaceGenerator
 
 # ROS related modules
-from locobot_custom.srv import Approach, Grasp, Place, PrimitiveBase
+from locobot_custom.srv import Approach, Grasp, Place, PrimitiveBase, GraspPose
 
 
 class RecycleBot(gym.Env):
@@ -75,7 +76,11 @@ class RecycleBot(gym.Env):
         if action_type == "approach":
             success, info = self.call_service('approach', target, Approach)
         elif action_type == "grasp":
-            success, info = self.call_service('grasp', target, Grasp)
+            # Call the GraspPose service to get the estimated grasp pose
+            success, info = self.call_service('compute_and_publish_grasp_pose', target, GraspPose)
+            if success:
+                # this will execute the action
+                success, info = self.call_service('grasp', target, Grasp)
         elif action_type == "place":
             success, info = self.call_service('place', target, Place)
         elif action_type == "pass_through_door":
@@ -138,3 +143,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -82,6 +82,8 @@
     <!-- Action Execution Services -->
     <node name="approach_server" pkg="locobot_custom" type="approach_server.py" output="screen" />
     <node name="grasp_server" pkg="locobot_custom" type="grasp_server.py" output="screen" />
+    <node name="grasp_pose_server" pkg="locobot_custom" type="grasp_pose_server.py" output="screen" />
+    <node name="primitive_move_base_server" pkg="locobot_custom" type="primitive_move_base_server.py" output="screen" />
     
     <!-- MDP Services -->
     <node name="observation_server_gazebo" pkg="locobot_custom" type="observation_server_gazebo.py" output="screen" />

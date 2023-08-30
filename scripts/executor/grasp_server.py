@@ -21,6 +21,7 @@ from std_msgs.msg import String
 from tf.transformations import quaternion_from_euler
 from moveit_commander.conversions import pose_to_list
 from locobot_custom.srv import Grasp
+from locobot_custom.srv import GraspPose, GraspPoseResponse
 
 def all_close(goal, actual, tolerance):
     """
@@ -115,6 +116,8 @@ class LBMoveIt:
 
         print(self.robot.get_current_state())
         print("LBMoveit initialized")
+        # subscribe to the estimated grasp pose topic
+        self.grasp_pose = None
 
     def go_plan(self, pose: PoseStamped):
         print ("Current Joint Values in func go_plan: " + str(self.group.get_current_joint_values()))
@@ -190,25 +193,42 @@ class LBMoveIt:
 
         current_pose = self.group.get_current_pose().pose
         return all_close(pose_goal, current_pose, 0.01)
-
+    
 def handle_grasp(req):
-    # Initialize the arm and gripper group using the LBMoveIt class
+    """
+    Handle the grasp request, listen to the appropriate topic for the pose, 
+    move the arm to the received pose, and close the gripper.
+    
+    Args:
+    - req: The request containing the target name.
+    
+    Returns:
+    - dict: A dictionary indicating success status and an associated message.
+    """
+    # Listen to the topic to get the pose
+    topic_name = "/computed_grasp_pose/" + req.target
+    pose_msg = rospy.wait_for_message(topic_name, PoseStamped, timeout=10)  # Adjust timeout as needed
+
+    if not pose_msg:
+        return {"success": False, "message": "Failed to get grasp pose from topic"}
+
+    # Initialize the arm and gripper group
     arm_group = LBMoveIt(group="arm")
     gripper_group = LBMoveIt(group="gripper")
     
-    # Move the arm to the desired pose
-    success = arm_group.go_to_pose_goal(req.target.pose)
-    # success = arm_group.go_plan(req.target.pose)
-
-    if not success:
+    # Attempt to move the arm to the desired pose
+    if not arm_group.go_to_pose_goal(pose_msg.pose):
         return {"success": False, "message": "Failed to move arm to target pose"}
 
-    # Close the gripper to grasp the object
+    # Grasp the object
     gripper_group.close_gripper()
 
     return {"success": True, "message": "Successfully grasped object at target pose"}
 
 def grasp_server():
+    """
+    Initialize the grasp service and keep it running.
+    """
     rospy.init_node('grasp_service')
     s = rospy.Service('grasp', Grasp, handle_grasp)
     rospy.spin()

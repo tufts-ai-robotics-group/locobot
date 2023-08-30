@@ -7,11 +7,11 @@ def test_primitive_action_server():
     rospy.init_node('test_primitive_action_client')
     
     # Wait for the service to become available
-    rospy.wait_for_service('primitive_move_base_action')
+    rospy.wait_for_service('primitive_action_service')
     
     # Create a service client
     try:
-        service_client = rospy.ServiceProxy('primitive_move_base_action', PrimitiveBase)
+        service_client = rospy.ServiceProxy('primitive_action_service', PrimitiveBase)
         
         # Test move_forward
         response = service_client("move_forward", 1.0)  # Move forward by 1 meter

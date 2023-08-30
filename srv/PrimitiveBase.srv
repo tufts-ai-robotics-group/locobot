@@ -1,0 +1,7 @@
+# Request
+string action_type   # "move_forward", "turn_left", "turn_right"
+float32 value        # Distance to move forward (in meters) or angle to turn (in radians)
+---
+# Response
+bool success         # True if the action was successful, False otherwise
+string message       # A message describing the result or any errors

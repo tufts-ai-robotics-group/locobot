@@ -10,19 +10,19 @@ cmd_vel_pub = None
 def handle_primitive_action(req):
     global cmd_vel_pub
     
-    print("Received service call with action:", req.action, "and value:", req.value)
+    print("Received service call with action:", req.action_type, "and value:", req.value)
     
     # Create a Twist message
     cmd = Twist()
 
     # Set the action
-    if req.action == "move_forward":
+    if req.action_type == "move_forward":
         cmd.linear.x = req.value
         cmd.angular.z = 0
-    elif req.action == "turn_left":
+    elif req.action_type == "turn_left":
         cmd.linear.x = 0
         cmd.angular.z = req.value
-    elif req.action == "turn_right":
+    elif req.action_type == "turn_right":
         cmd.linear.x = 0
         cmd.angular.z = -req.value
     else:
@@ -35,6 +35,10 @@ def handle_primitive_action(req):
     while rospy.Time.now() < end_time:
         cmd_vel_pub.publish(cmd)
         rate.sleep()
+
+    # Stop the robot after executing the action
+    stop_cmd = Twist()
+    cmd_vel_pub.publish(stop_cmd)
 
     return PrimitiveBaseResponse(success=True)
 

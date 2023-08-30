@@ -78,14 +78,15 @@ class RecycleBot(gym.Env):
             success, info = self.call_service('grasp', target, Grasp)
         elif action_type == "place":
             success, info = self.call_service('place', target, Place)
-        elif action_type == "move_forward":
-            success, info = self.call_service('primitive_move_base_action', {"action_type": "move_forward", "value": 1.0}, PrimitiveBase)
-        elif action_type == "turn_left":
-            success, info = self.call_service('primitive_move_base_action', {"action_type": "turn_left", "value": 0.785398}, PrimitiveBase)
-        elif action_type == "turn_right":
-            success, info = self.call_service('primitive_move_base_action', {"action_type": "turn_right", "value": 0.785398}, PrimitiveBase)
         elif action_type == "pass_through_door":
             success, info = self.call_service('approach', "doorway_1_blue", Approach)
+        # primitive actions
+        elif action_type == "move_forward":
+            success, info = self.call_service('primitive_action_service', {"action_type": "move_forward", "value": 1.0}, PrimitiveBase)
+        elif action_type == "turn_left":
+            success, info = self.call_service('primitive_action_service', {"action_type": "turn_left", "value": 0.785398}, PrimitiveBase)
+        elif action_type == "turn_right":
+            success, info = self.call_service('primitive_action_service', {"action_type": "turn_right", "value": 0.785398}, PrimitiveBase)
 
         return success, info
 

@@ -67,6 +67,7 @@ add_service_files(
   Contain.srv
   Facing.srv
   Hold.srv
+  PrimitiveBase.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -181,6 +182,7 @@ catkin_install_python(PROGRAMS
   scripts/executor/grasp_server.py scripts/executor/tests/test_grasp.py scripts/obtain_pick_item_pose.py 
   scripts/executor/universal_move_arm.py
   scripts/executor/place_server.py scripts/executor/tests/test_place.py
+  scripts/executor/primitive_move_base_server.py scripts/executor/tests/test_primitive.py
   scripts/environment/observation_server_gazebo.py scripts/environment/tests/test_observation_gazebo_client.py
   scripts/environment/predicate_services/at.py scripts/environment/predicate_services/contain.py
   scripts/environment/predicate_services/facing.py scripts/environment/predicate_services/hold.py

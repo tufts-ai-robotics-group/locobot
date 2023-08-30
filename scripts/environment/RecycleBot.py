@@ -10,7 +10,7 @@ from RewardFunction import RewardFunction
 from ActionGenerator import ActionSpaceGenerator
 
 # ROS related modules
-from locobot_custom.srv import Approach, Grasp, Place
+from locobot_custom.srv import Approach, Grasp, Place, PrimitiveBase
 
 
 class RecycleBot(gym.Env):
@@ -69,8 +69,6 @@ class RecycleBot(gym.Env):
         # this is hardcoded for now.
         action_type = action_name.split(" ")[0]
         target = action_name.split(" ")[1] # in our case, the target of the action is the first parameter of the action.
-        # Assuming actions like "approach <object>", "grasp <object>", etc.
-        # action_type, target = action_name.split(" ")
         success = False
         info = ""
 
@@ -80,10 +78,17 @@ class RecycleBot(gym.Env):
             success, info = self.call_service('grasp', target, Grasp)
         elif action_type == "place":
             success, info = self.call_service('place', target, Place)
-        elif action_type == "pass_through_door": # Hack currently to handle special case of approach. The agent should essentially approach the doorway on the other side of the room. 
+        elif action_type == "move_forward":
+            success, info = self.call_service('primitive_move_base_action', {"action_type": "move_forward", "value": 1.0}, PrimitiveBase)
+        elif action_type == "turn_left":
+            success, info = self.call_service('primitive_move_base_action', {"action_type": "turn_left", "value": 0.785398}, PrimitiveBase)
+        elif action_type == "turn_right":
+            success, info = self.call_service('primitive_move_base_action', {"action_type": "turn_right", "value": 0.785398}, PrimitiveBase)
+        elif action_type == "pass_through_door":
             success, info = self.call_service('approach', "doorway_1_blue", Approach)
 
         return success, info
+
 
     def call_service(self, service_name, target, service_type):
         rospy.wait_for_service(service_name)

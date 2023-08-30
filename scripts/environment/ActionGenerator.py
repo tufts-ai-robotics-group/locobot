@@ -51,7 +51,8 @@ class ActionSpaceGenerator:
         Returns:
         grounded_actions (list): List of all possible grounded actions as strings.
         """
-        grounded_actions = []
+        grounded_actions = ['move_forward', 'turn_left', 'turn_right'] # add the primitive move base actions; currently hardcoded.
+
 
         # Iterate over all actions in the domain
         for action in self.parser.actions:

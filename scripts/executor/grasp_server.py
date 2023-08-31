@@ -20,7 +20,7 @@ from six.moves import input
 from std_msgs.msg import String
 from tf.transformations import quaternion_from_euler
 from moveit_commander.conversions import pose_to_list
-from locobot_custom.srv import Grasp
+from locobot_custom.srv import Grasp, GraspResponse
 from locobot_custom.srv import GraspPose, GraspPoseResponse
 
 def all_close(goal, actual, tolerance):
@@ -206,24 +206,25 @@ def handle_grasp(req):
     - dict: A dictionary indicating success status and an associated message.
     """
     # Listen to the topic to get the pose
-    topic_name = "/computed_grasp_pose/" + req.target
+    topic_name = "/computed_grasp_pose/" + req.target.data
     pose_msg = rospy.wait_for_message(topic_name, PoseStamped, timeout=10)  # Adjust timeout as needed
-
+    # rospy.loginfo("===============================>>>>>>>>>>>>>>>>>>>>>>")
+    # rospy.loginfo("__________________________________________________________")
+    # rospy.loginfo("Received pose message from topic: {}".format(topic_name))
+    # rospy.loginfo("Pose message: {}".format(pose_msg))
     if not pose_msg:
-        return {"success": False, "message": "Failed to get grasp pose from topic"}
-
+        return GraspResponse(success=False, message=String(data="Failed to get grasp pose from topic"))
     # Initialize the arm and gripper group
     arm_group = LBMoveIt(group="arm")
     gripper_group = LBMoveIt(group="gripper")
     
     # Attempt to move the arm to the desired pose
     if not arm_group.go_to_pose_goal(pose_msg.pose):
-        return {"success": False, "message": "Failed to move arm to target pose"}
-
+        return GraspResponse(success=False, message=String(data="Failed to move arm to target pose"))
     # Grasp the object
     gripper_group.close_gripper()
 
-    return {"success": True, "message": "Successfully grasped object at target pose"}
+    return GraspResponse(success=True, message=String(data="Successfully grasped object at target pose"))
 
 def grasp_server():
     """

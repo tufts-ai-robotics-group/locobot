@@ -59,6 +59,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
+  GraspPose.srv
   Approach.srv
   Grasp.srv
   Place.srv
@@ -118,7 +119,7 @@ catkin_package(
   
 #  INCLUDE_DIRS include
 #  LIBRARIES robot_custom
-   CATKIN_DEPENDS message_runtime
+   CATKIN_DEPENDS message_runtime rospy std_msgs std_srvs geometry_msgs
 #  CATKIN_DEPENDS geometry_msgs roscpp rospy std_msgs std_srvs
 #  DEPENDS system_lib
 )
@@ -177,7 +178,8 @@ include_directories(
 #   scripts/my_python_script
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
-catkin_install_python(PROGRAMS
+catkin_install_python(PROGRAMS 
+  scripts/executor/grasp_pose_server.py
   scripts/executor/approach_server.py scripts/executor/tests/test_approach.py
   scripts/executor/grasp_server.py scripts/executor/tests/test_grasp.py scripts/obtain_pick_item_pose.py 
   scripts/executor/universal_move_arm.py

@@ -2,6 +2,7 @@
 #!/usr/bin/env python3
 
 import rospy
+import threading
 from geometry_msgs.msg import PoseStamped, Quaternion
 from gazebo_msgs.msg import ModelStates
 from tf.transformations import quaternion_from_euler
@@ -30,10 +31,13 @@ class PickUpPoseCalculator:
             self.object_pose.header.stamp = rospy.Time.now()
             self.object_pose.header.frame_id = "map"
 
+    def start_publishing_pose(self, target_pose, topic_name):
+        rate = rospy.Rate(10.0)
+        while not rospy.is_shutdown() and self.continue_publishing:
+            self.pose_publisher.publish(target_pose)
+            rate.sleep()
+            
     def handle_grasp_pose(self, req):
-        # Create a publisher for the specific object
-        self.pose_publisher = rospy.Publisher('computed_grasp_pose/{}'.format(req.object_name), PoseStamped, queue_size=10)
-
         rospy.Subscriber('/gazebo/model_states', ModelStates, self.model_state_callback, req.object_name)
 
         rate = rospy.Rate(10.0)
@@ -51,9 +55,19 @@ class PickUpPoseCalculator:
         y = target_pose.pose.position.y
         target_pose.pose.orientation = Quaternion(*quaternion_from_euler(ai=0, aj=1.4, ak=math.atan2(y, x)))
         target_pose.pose.position.x += 0.037943
-        
-        self.pose_publisher.publish(target_pose)
-        return GraspPoseResponse(success=True, message="Pose computed and published successfully!")
+
+        # Updating the publisher to use the provided object_name in the topic
+        topic_name = 'computed_grasp_pose/{}'.format(req.object_name)
+        self.pose_publisher = rospy.Publisher(topic_name, PoseStamped, queue_size=10)
+
+        # Flag to control the publishing loop in the thread
+        self.continue_publishing = True
+
+        # Start a thread to continuously publish the pose
+        threading.Thread(target=self.start_publishing_pose, args=(target_pose, topic_name)).start()
+
+        return GraspPoseResponse(success=True, message="Pose computed and publishing continuously!")
+
 
     def world_to_locobot(self, pose_world: PoseStamped) -> PoseStamped:
         target_transform: tf2_ros.TransformStamped = self.tf_buffer.lookup_transform(LOCOBOT_TF, WORLD_TF, rospy.Time(0))
@@ -61,7 +75,7 @@ class PickUpPoseCalculator:
 
 
 def main():
-    rospy.init_node('grasp_pose_calculator_service')
+    rospy.init_node('grasp_pose_server')
     calculator = PickUpPoseCalculator()
     s = rospy.Service('compute_and_publish_grasp_pose', GraspPose, calculator.handle_grasp_pose)
     rospy.loginfo("Ready to compute and publish grasping pose.")

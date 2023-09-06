@@ -38,7 +38,7 @@ from visualization_msgs.msg import MarkerArray
 from rospy import Time
 
 # Variables to be set based on task
-objects_of_interest = ["dog", "teddy bear"] # Specify objects of interest for YOLO to target
+objects_of_interest = ["dog", "teddy bear", "traffic light", "bottle", "marker", "sports ball"] # Specify objects of interest for YOLO to target
  
 # Variables to be set based on robot
 ## Can be tuned and changed according to the user.
@@ -301,7 +301,7 @@ def move_arm(pose): # Function to pick up and place object
     delta = -0.1  # offset
     axis = 0  # 0 for x-axis, 1 for y-axis, 2 for z-axis    
     x_intermidiate,y_intermidiate,z_intermidiate,roll_intermidiate,pitch_intermidiate,yaw_intermidiate = generate_intermediate_pose(object_pose, delta, axis)
-    delta_final = 0.03
+    delta_final = 0.01
     # this adjusts the final grasp- poise to get a bit deeper into the object to succesfully grasp it
     x_final, y_final, z_final, roll_final, pitch_final, yaw_final = generate_intermediate_pose(object_pose, delta_final, axis)
 
@@ -355,10 +355,13 @@ if __name__ == "__main__":
 
     publish_cloud_samples() # Publishes point cloud to GPD
     print("Point cloud sent...")
+    
 
     while not rospy.is_shutdown():
+        # rospy.logerr(f"coordinates_done {coordinates_done} grasp_info_done {grasp_info_done}")
         x = 0
         while coordinates_done == False or grasp_info_done == False: # Waits for coordinate array and grasp score array are filled
+            # rospy.logwarn(f"coordinates_done {coordinates_done} grasp_info_done {grasp_info_done}")
             time.sleep(0.1)
             x = x+1
             if x > 1200: # Adds a 120 second time out for the while loop

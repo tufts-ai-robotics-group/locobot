@@ -25,7 +25,7 @@ from sensor_msgs.msg import PointCloud2, JointState
 from gpd_ros.msg import GraspConfigList, CloudSources, CloudSamples
 from visualization_msgs.msg import MarkerArray
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
-from locobot_msgs.msg import YoloObject
+from locobot_msgs.srv import YoloObject
 
 class GPDPickAndPlace:
     def __init__(self) -> None:

@@ -70,11 +70,6 @@ export ROS_IP=<your desktop computer IP>
 export ROS_MASTER_URI=http://locobot.local:11311
 ```
 
-Secondly, launch RViz by running the following command:
-```
-roslaunch locobot_custom remote_view.launch
-```
-
 ## Navigation Using Python Code (works in both simulation and real robot)
 #### Run the script for sending the goal to go to locations
 

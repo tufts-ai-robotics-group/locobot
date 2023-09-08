@@ -1,4 +1,3 @@
-import math
 import time
 from interbotix_xs_modules.locobot import InterbotixLocobotXS
 from interbotix_perception_modules.apriltag import InterbotixAprilTagInterface
@@ -9,6 +8,7 @@ from interbotix_perception_modules.apriltag import InterbotixAprilTagInterface
 # To get started, open a terminal and type...
 # 'roslaunch interbotix_xslocobot_control xslocobot_python.launch robot_model:=locobot_wx200 use_perception:=true'
 # Then change to this directory and type 'python pick_place_no_armtag.py'
+
 
 def main():
     bot = InterbotixLocobotXS("locobot_wx200", arm_model="mobile_wx200")
@@ -21,9 +21,8 @@ def main():
 
     # Detection of the box with april tags
     ati = InterbotixAprilTagInterface(
-                    apriltag_ns="locobot" + "/apriltag",
-                    init_node=False,
-                    verbose=True)
+        apriltag_ns="locobot" + "/apriltag", init_node=False, verbose=True
+    )
     print("April Tag Interface")
     ati.valid_tags.append(0)
     pose = ati.find_pose()
@@ -47,21 +46,23 @@ def main():
 
     # get the positions of any clusters present w.r.t. the 'locobot/arm_base_link'
     # sort the clusters such that they appear from left-to-right w.r.t. the 'locobot/arm_base_link'
-    success, clusters = bot.pcl.get_cluster_positions(ref_frame="locobot/arm_base_link", sort_axis="z", reverse=True)
+    success, clusters = bot.pcl.get_cluster_positions(
+        ref_frame="locobot/arm_base_link", sort_axis="z", reverse=True
+    )
     print("clusters:", clusters)
 
     while len(clusters) > 0:
         cluster = clusters[0]
         bot.arm.set_ee_pose_components(x=0.3, z=0.2)
         x, y, z = cluster["position"]
-        bot.arm.set_ee_pose_components(x=x, y=y, z=z+0.05, pitch=0.8)
+        bot.arm.set_ee_pose_components(x=x, y=y, z=z + 0.05, pitch=0.8)
         time.sleep(0.2)
         bot.arm.set_ee_pose_components(x=x, y=y, z=z, pitch=0.8)
         time.sleep(0.2)
         bot.gripper.close()
         time.sleep(0.2)
 
-        bot.arm.set_ee_pose_components(x=x, y=y, z=z+0.05, pitch=0.5)
+        bot.arm.set_ee_pose_components(x=x, y=y, z=z + 0.05, pitch=0.5)
         time.sleep(0.2)
         bot.arm.set_ee_pose_components(x=0.4, y=-0.3, z=0.2, moving_time=1.5)
         time.sleep(0.2)
@@ -72,10 +73,13 @@ def main():
         bot.arm.set_ee_pose_components(x=0.3, z=0.2, moving_time=1.5)
         bot.arm.go_to_sleep_pose()
         time.sleep(0.1)
-        success, clusters = bot.pcl.get_cluster_positions(ref_frame="locobot/arm_base_link", sort_axis="y", reverse=True)
+        success, clusters = bot.pcl.get_cluster_positions(
+            ref_frame="locobot/arm_base_link", sort_axis="y", reverse=True
+        )
 
     bot.arm.set_ee_pose_components(x=0.3, z=0.2)
     bot.arm.go_to_sleep_pose()
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     main()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 ##################################################################
 # obtain_obj_loc.py
-# 
+#
 # by GPT
 #
 # listens to the model states topic and gives the location of the desired object
@@ -10,17 +10,19 @@
 ##################################################################
 
 import rospy
-from geometry_msgs.msg import TransformStamped, PoseStamped, Pose, Quaternion, PointStamped
+from geometry_msgs.msg import (
+    TransformStamped,
+    PoseStamped,
+    Quaternion,
+)
 from gazebo_msgs.msg import ModelStates
 from tf.transformations import quaternion_from_euler
-from moveit_msgs.msg import MoveGroupActionGoal, MoveGroupGoal
 import tf2_ros
 import tf2_geometry_msgs
 import math
 
 ARM_RELATIVE_LOC = [0.037943, 0, 0.139]
 
-    
 
 WORLD_TF = "map"
 LOCOBOT_TF = "locobot/base_link"
@@ -49,15 +51,18 @@ class PickUpPoseCalculator:
         # rospy.init_node('pose_listener')
 
         # Subscribe to the Gazebo model_states topic to get the object and LoCoBot poses
-        rospy.Subscriber('/gazebo/model_states', ModelStates, model_state_callback)
-    
-    
+        rospy.Subscriber("/gazebo/model_states", ModelStates, model_state_callback)
+
     def world_to_locobot(self, pose_world: PoseStamped) -> PoseStamped:
-        target_transform: TransformStamped = self.tf_buffer.lookup_transform(LOCOBOT_TF, WORLD_TF, rospy.Time(0))
+        target_transform: TransformStamped = self.tf_buffer.lookup_transform(
+            LOCOBOT_TF, WORLD_TF, rospy.Time(0)
+        )
         return tf2_geometry_msgs.do_transform_pose(pose_world, target_transform)
-    
+
     def locobot_to_world(self, pose_locobot: PoseStamped) -> PoseStamped:
-        target_transform: TransformStamped = self.tf_buffer.lookup_transform(WORLD_TF, LOCOBOT_TF, rospy.Time(0))
+        target_transform: TransformStamped = self.tf_buffer.lookup_transform(
+            WORLD_TF, LOCOBOT_TF, rospy.Time(0)
+        )
         return tf2_geometry_msgs.do_transform_pose(pose_locobot, target_transform)
 
     def get_pose(self, pitch=1.4, z_offset=0.0, x_offset=0.037943) -> PoseStamped:
@@ -69,21 +74,31 @@ class PickUpPoseCalculator:
         # Wait for the transform to be obtained
         while True:
             try:
-                target_transform: TransformStamped = self.tf_buffer.lookup_transform(LOCOBOT_TF, WORLD_TF, rospy.Time(0))
-                target_pose = tf2_geometry_msgs.do_transform_pose(self.object_pose, target_transform)
+                target_transform: TransformStamped = self.tf_buffer.lookup_transform(
+                    LOCOBOT_TF, WORLD_TF, rospy.Time(0)
+                )
+                target_pose = tf2_geometry_msgs.do_transform_pose(
+                    self.object_pose, target_transform
+                )
                 # orientation computation
                 # 1. aj (pitch) determines the angle between the arm and the ground.
-                # 2. ak (yaw) (angle that determines whether the final pose of the gripper 
+                # 2. ak (yaw) (angle that determines whether the final pose of the gripper
                 #    should go left / right) needs to be determined by arctan because we only have 5 dof.
                 # target_pose.pose.position.y = 0 # test
-                
+
                 x = target_pose.pose.position.x
                 y = target_pose.pose.position.y
-                target_pose.pose.orientation = Quaternion(*quaternion_from_euler(ai=0, aj=pitch, ak=math.atan2(y, x)))
+                target_pose.pose.orientation = Quaternion(
+                    *quaternion_from_euler(ai=0, aj=pitch, ak=math.atan2(y, x))
+                )
                 target_pose.pose.position.x += x_offset
                 target_pose.pose.position.z += z_offset
                 return target_pose
-            except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
+            except (
+                tf2_ros.LookupException,
+                tf2_ros.ConnectivityException,
+                tf2_ros.ExtrapolationException,
+            ) as e:
                 rate.sleep()
 
 
@@ -96,7 +111,7 @@ def debug():
 
     while not rospy.is_shutdown():
         pose = ball_pose_calculator.get_pose(pitch=1.4, z_offset=0.05)
-        
+
         print("---------")
         print(pose)
 

@@ -297,15 +297,11 @@ class GPDPickAndPlace:
                 pose.pose.position.y, pose.pose.position.x
             )  # Manually calculates yaw as nature of 5 degree arm makes it hard to control
             quat = quaternion_from_euler(roll, pitch, yaw)
-            pose.pose.orientation.x = x
-            pose.pose.orientation.y = y
-            pose.pose.orientation.z = z
-            pose.pose.orientation.w = w  # sorry for the crude way
 
-            x = quat[0] 
-            y = quat[1] 
-            z = quat[2]
-            w = quat[3]
+            pose.pose.orientation.x = quat[0] 
+            pose.pose.orientation.y = quat[1]
+            pose.pose.orientation.z = quat[2]
+            pose.pose.orientation.w = quat[3]  # sorry for the crude way
 
             self.arm_group.set_pose_target(
                 pose, end_effector_link="locobot/gripper_link"
@@ -351,12 +347,17 @@ class GPDPickAndPlace:
         self.pub_coordinates.publish(pose)
 
         x, y, z = pose.pose.position.x, pose.pose.position.y, pose.pose.position.z
-        roll, pitch, yaw = euler_from_quaternion(
+        angle = euler_from_quaternion([
             pose.pose.orientation.x,
             pose.pose.orientation.y,
             pose.pose.orientation.z,
             pose.pose.orientation.w,
-        )
+        ])
+
+        roll=angle[0]
+        pitch=angle[1]
+        yaw=angle[2]
+
         yaw = math.atan2(pose.pose.position.y, pose.pose.position.x)
 
         # Creates aproach position as to not knock object over

@@ -21,6 +21,13 @@ class YoloFindObject:
     def __init__(self) -> None:
         rospy.init_node("yolo_find_object", anonymous=True)  # Initialize node
 
+        self.fx, self.fy, self.cx, self.cy = (
+            604.5020141601562,
+            604.4981079101562,
+            320.894287109375,
+            245.15847778320312,
+        )
+
         self.yolo_pub = rospy.Publisher("Center_bound", Point, queue_size=1000)
         rospy.Service("yolo_find_object", YoloObject, self.yolo_find_object)
         rospy.spin()

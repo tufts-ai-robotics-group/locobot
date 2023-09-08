@@ -34,12 +34,7 @@ class GPDPickAndPlace:
         self.x_view = -0.008972  # Coordinates of camera
         self.y_view = -0.015818
         self.z_view = 0.000003
-        self.fx, self.fy, self.cx, self.cy = (
-            604.5020141601562,
-            604.4981079101562,
-            320.894287109375,
-            245.15847778320312,
-        )  # Camera intrinsics can be gotten through /locobot/camera/aligned_depth_to_color/camera_info topic
+
         self.topic_PointCloud = (
             "/locobot/camera/depth/color/points"  # Topic of the point cloud
         )
@@ -58,7 +53,6 @@ class GPDPickAndPlace:
         self.bot.arm.set_ee_pose_components(x=0.3, z=0.2)  # Y defaults to 0
         self.bot.arm.go_to_sleep_pose()
 
-        rospy.init_node("GPD_pick_and_place", anonymous=True)  # Initialize node
         rospy.Subscriber(
             "detect_grasps/plot_grasps",
             MarkerArray,

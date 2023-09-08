@@ -207,12 +207,17 @@ class GPDPickAndPlace:
             pose.pose.position.y,
             pose.pose.position.z,
         )
-        roll, pitch, yaw = euler_from_quaternion(
+        angle = euler_from_quaternion([
             pose.pose.orientation.x,
             pose.pose.orientation.y,
             pose.pose.orientation.z,
             pose.pose.orientation.w,
-        )
+        ])
+
+        roll=angle[0]
+        pitch=angle[1]
+        yaw=angle[2]
+
         if (
             -0.524 < yaw < 0.524
         ):  # Filtering to ensure yaw is within range graspable to arm
@@ -269,12 +274,15 @@ class GPDPickAndPlace:
     def IK_verification(self, pose):
         # Inverse kinematics function to esure grasp is reachable by arm
         # computing the orientations
-        roll, pitch, yaw = euler_from_quaternion(
+        angle = euler_from_quaternion([
             pose.pose.orientation.x,
             pose.pose.orientation.y,
             pose.pose.orientation.z,
             pose.pose.orientation.w,
-        )
+        ])
+        roll=angle[0]
+        pitch=angle[1]
+        yaw=angle[2]
 
         if (
             1.5708 < yaw
@@ -288,11 +296,16 @@ class GPDPickAndPlace:
             yaw = math.atan2(
                 pose.pose.position.y, pose.pose.position.x
             )  # Manually calculates yaw as nature of 5 degree arm makes it hard to control
-            x, y, z, w = quaternion_from_euler(roll, pitch, yaw)
+            quat = quaternion_from_euler(roll, pitch, yaw)
             pose.pose.orientation.x = x
             pose.pose.orientation.y = y
             pose.pose.orientation.z = z
             pose.pose.orientation.w = w  # sorry for the crude way
+
+            x = quat[0] 
+            y = quat[1] 
+            z = quat[2]
+            w = quat[3]
 
             self.arm_group.set_pose_target(
                 pose, end_effector_link="locobot/gripper_link"

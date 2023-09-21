@@ -40,7 +40,6 @@
         <arg name="robot_model"                       value="$(arg robot_model)"/>
         <arg name="robot_name"                        value="$(arg robot_name)"/>
         <arg name="use_rviz"                          value="false"/>
-        <arg name="standalone_tags"                   value="$(find locobot_custom)/config/april_tags.yaml"/>
         <arg name="launch_driver"                     value="false"/>
         <arg name="enable_pipeline"                   value="true"/>
     </include>

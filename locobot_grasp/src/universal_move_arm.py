@@ -7,24 +7,17 @@
 #
 #
 
-import math
 import sys
-import os
-import copy
 from typing import Optional
 import rospy
-import random
 import time
 import moveit_commander
-import moveit_msgs.msg
 import geometry_msgs.msg
 from geometry_msgs.msg import Pose, Point, Quaternion
-from math import pi
-from six.moves import input
-from std_msgs.msg import String
 from tf.transformations import quaternion_from_euler
 from moveit_commander.conversions import pose_to_list
 from obtain_pick_item_pose import PickUpPoseCalculator
+
 
 def all_close(goal, actual, tolerance):
     """
@@ -48,16 +41,16 @@ def all_close(goal, actual, tolerance):
 
     return True
 
+
 class LBMoveIt:
     class ARM_JOINT_STATES:
         HOME = [0, 0, 0, 0, 0]
         SLEEP = [0, -1.29154, 1.55334, 0.698132, 0]
         UPRIGHT = [0, 0, -1.5708, 0, 0]
 
-
-    def __init__(self, group="arm"): # group: arm / gripper
+    def __init__(self, group="arm"):  # group: arm / gripper
         moveit_commander.roscpp_initialize(sys.argv)
-        rospy.init_node('moveit_python_interface')
+        rospy.init_node("moveit_python_interface")
 
         ## Get the name of the robot - this will be used to properly define the end-effector link when adding a box
         print("\n".join(rospy.get_param_names()))
@@ -66,7 +59,9 @@ class LBMoveIt:
         self.ee_link_offset = rospy.get_param("~ee_link_offset")
         self.joint_goal = rospy.get_param("~joint_goal")
         pose_goal_raw = rospy.get_param("~pose_goal")
-        quat = quaternion_from_euler(pose_goal_raw[3], pose_goal_raw[4], pose_goal_raw[5])
+        quat = quaternion_from_euler(
+            pose_goal_raw[3], pose_goal_raw[4], pose_goal_raw[5]
+        )
         self.pose_goal = geometry_msgs.msg.Pose()
         self.pose_goal.position.x = pose_goal_raw[0]
         self.pose_goal.position.y = pose_goal_raw[1]
@@ -115,13 +110,12 @@ class LBMoveIt:
         print(self.robot.get_current_state())
         print("")
 
-
     def go_to_joint_state(self, joint_goal=None):
         ## Planning to a Joint Goal
         ## ^^^^^^^^^^^^^^^^^^^^^^^^
         if joint_goal is None:
             joint_goal = self.joint_goal
-        
+
         print("============ Printing Joint Goal: " + str(joint_goal))
 
         # The go command can be called with joint values, poses, or without any
@@ -134,7 +128,7 @@ class LBMoveIt:
         current_joints = self.group.get_current_joint_values()
         return all_close(joint_goal, current_joints, 0.01)
 
-    def go_to_pose_goal(self, pose_goal: Optional[geometry_msgs.msg.Pose]=None):
+    def go_to_pose_goal(self, pose_goal: Optional[geometry_msgs.msg.Pose] = None):
         ## Planning to a Pose Goal
         ## ^^^^^^^^^^^^^^^^^^^^^^^
         ## We can plan a motion for this group to a desired pose for the
@@ -144,17 +138,17 @@ class LBMoveIt:
 
         print("============ Printing Pose Goal:\n" + str(pose_goal))
         xyz = [pose_goal.position.x, pose_goal.position.y, pose_goal.position.z]
-        print (self.group.get_goal_tolerance())
+        print(self.group.get_goal_tolerance())
         # self.group.set_goal_position_tolerance(value=0.01)
         self.group.set_goal_orientation_tolerance(value=0.01)
         # print (self.group.get_goal_tolerance())
-        self.group.set_position_target(xyz) # this works
+        self.group.set_position_target(xyz)  # this works
         # self.group.set_pose_target(pose_goal) # this doesnt work
         print("!!!!!!!!!!! Planning NOW !!!!!")
 
         ## Now, we call the planner to compute the plan and execute it.
         start_time = time.time()
-        duration = 5 # Specify the duration in seconds
+        duration = 5  # Specify the duration in seconds
 
         while time.time() - start_time < duration:
             try:
@@ -178,17 +172,17 @@ class LBMoveIt:
 
 def main():
     arm_group = LBMoveIt()
-    
+
     # go to upright
     arm_group.go_to_joint_state(LBMoveIt.ARM_JOINT_STATES.HOME)
-    
+
     # go to some valid pose
     # arm_group.go_to_pose_goal()
     # arm_group.go_to_pose_goal(Pose(
     #     position=Point(x=0.5, y=0, z=0.35),
     #     orientation=Quaternion(x=0, y=0, z=0, w=1)
     # ))
-    
+
     # go to the location of a specific object
     pose_calc = PickUpPoseCalculator("cricket_ball")
     # pose_calc = PickUpPoseCalculator("coke_can_0")
@@ -201,6 +195,7 @@ def main():
 
     rospy.logdebug("Done!")
 
+
 def test1():
     x, y, z = 0.35, 0, 0.1
     arm_group = LBMoveIt()
@@ -208,18 +203,22 @@ def test1():
     print(curr_pose)
     arm_group.go_to_joint_state(LBMoveIt.ARM_JOINT_STATES.HOME)
     arm_group.go_to_pose_goal(curr_pose)
-    arm_group.go_to_pose_goal(Pose(
-        position=Point(x, y, z),
-        # orientation=Quaternion(*quaternion_from_euler(ai=0, aj=0.8, ak=math.atan2(y,x)))
-        orientation=curr_pose.orientation
-    ))
+    arm_group.go_to_pose_goal(
+        Pose(
+            position=Point(x, y, z),
+            # orientation=Quaternion(*quaternion_from_euler(ai=0, aj=0.8, ak=math.atan2(y,x)))
+            orientation=curr_pose.orientation,
+        )
+    )
+
 
 def print_pose():
     arm_group = LBMoveIt()
     curr_pose = arm_group.group.get_current_pose().pose
     print(curr_pose)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     if len(sys.argv) <= 1:
         main()
     elif sys.argv[1] == "get_pose":

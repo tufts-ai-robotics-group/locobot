@@ -1,0 +1,3 @@
+string[] objects
+---
+geometry_msgs/Point points
